@@ -92,12 +92,12 @@ export class World {
     const iron = P.rustIron(31), bone = P.boneSurface(41), carpet = P.carpetTex(51);
     const std = (o) => new THREE.MeshStandardMaterial({ roughness: 0.9, metalness: 0, ...o });
     this.mats = {
-      floor: std({ ...floor, vertexColors: true, normalScale: new THREE.Vector2(0.7, 0.7) }),
+      floor: std({ ...floor, vertexColors: true, normalScale: new THREE.Vector2(0.8, 0.8) }),
       stone: std({ ...wall, vertexColors: true, normalScale: new THREE.Vector2(1.2, 1.2) }),
       dark: std({ ...wall, color: '#7b8088', vertexColors: true }),
       relief: std({ ...relief }),
       reliefAltar: std({ ...reliefAltar }),
-      mortar: std({ color: '#25272a', roughness: 1 }),
+      mortar: std({ color: '#45474b', roughness: 1 }),
       iron: std({ ...iron, metalness: 0.6, vertexColors: true }),
       bone: std({ ...bone, color: '#cfc4a8', roughness: 0.75, vertexColors: true }),
       carpet: std({ ...carpet, vertexColors: true }),
