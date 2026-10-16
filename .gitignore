@@ -2,6 +2,9 @@
 node_modules/
 # scratch captures; curated validation evidence is committed under artifacts/validation/
 artifacts/validation/tmp/
-# image-run reference renders are large; prompts, checks and call logs are committed
+# image-run renders: the approved 4K masters (raw, tone-matched and their downscaled check copies)
+# and the targets are committed; the derived passes (clean, clay, depth) are regenerable and not.
 artifacts/image-run/**/*.png
 !artifacts/image-run/*/target.png
+!artifacts/image-run/*/master/
+!artifacts/image-run/*/master/*.png
