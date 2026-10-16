@@ -73,7 +73,7 @@ composer.addPass(new OutputPass());
 // pitch/yaw in degrees; height = vertical extent of the orthographic view in world units.
 const POSES = {
   title: { target: new THREE.Vector3(0.0, -0.75, -0.9), yaw: 9, pitch: 29, height: 13.0, fov: 28, moon: 0.35, hemi: 0.675, candles: 0.8, shade: 0.3, sat: 0.75, lo: [0.92, 0.99, 1.04] },
-  settings: { target: new THREE.Vector3(-3.3, 2.2, -4.6), yaw: 8, pitch: 26, height: 13.5, moon: 2.4, hemi: 1.3 },
+  settings: { target: new THREE.Vector3(-3.6, 2.25, -1.75), yaw: 4, pitch: 22.25, height: 13.5, fov: 2, moon: 2.1, hemi: 1.3, shade: 0.2, sat: 0.5, gain: 0.84, lo: [0.96, 0.99, 0.96] },
   crypt: { target: new THREE.Vector3(0.15, -1.1, 2.2), yaw: 0, pitch: 38, height: 17.2, fov: 8, moon: 2.15, hemi: 1.3, pool: 5, sat: 0.7, shade: 0.05 },
 };
 const cam = { target: POSES[START].target.clone(), yaw: POSES[START].yaw, pitch: POSES[START].pitch, height: POSES[START].height, fov: POSES[START].fov ?? 4 };
