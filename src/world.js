@@ -92,7 +92,7 @@ export class World {
     const iron = P.rustIron(31), bone = P.boneSurface(41), carpet = P.carpetTex(51);
     const std = (o) => new THREE.MeshStandardMaterial({ roughness: 0.9, metalness: 0, ...o });
     this.mats = {
-      floor: std({ ...floor, vertexColors: true, normalScale: new THREE.Vector2(1.3, 1.3) }),
+      floor: std({ ...floor, vertexColors: true, normalScale: new THREE.Vector2(0.7, 0.7) }),
       stone: std({ ...wall, vertexColors: true, normalScale: new THREE.Vector2(1.2, 1.2) }),
       dark: std({ ...wall, color: '#7b8088', vertexColors: true }),
       relief: std({ ...relief }),
