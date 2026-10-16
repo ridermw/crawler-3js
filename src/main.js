@@ -43,15 +43,16 @@ const bloom = new UnrealBloomPass(new THREE.Vector2(512, 512), 0.45, 0.5, 0.9);
 composer.addPass(bloom);
 // Cold-blue shadow / warm-amber highlight split-toning, vignette and screen dimming (linear HDR).
 const CryptGrade = {
-  uniforms: { tDiffuse: { value: null }, uVig: { value: 1 }, uDim: { value: 1 }, uAspect: { value: 16 / 9 }, uShade: { value: 0 } },
+  uniforms: { tDiffuse: { value: null }, uVig: { value: 1 }, uDim: { value: 1 }, uAspect: { value: 16 / 9 }, uShade: { value: 0 },
+    uLo: { value: new THREE.Vector3(0.96, 0.99, 1.04) }, uHi: { value: new THREE.Vector3(1.04, 1.0, 0.95) }, uSat: { value: 0.9 }, uGain: { value: 1 } },
   vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
-  fragmentShader: `uniform sampler2D tDiffuse; uniform float uVig, uDim, uAspect, uShade; varying vec2 vUv;
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uVig, uDim, uAspect, uShade, uSat, uGain; uniform vec3 uLo, uHi; varying vec2 vUv;
   void main(){
     vec4 c = texture2D(tDiffuse, vUv);
     float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722));
     float hw = smoothstep(0.02, 0.5, l);
-    c.rgb *= mix(vec3(0.86, 0.95, 1.12), vec3(1.08, 0.99, 0.86), hw);
-    c.rgb = mix(vec3(l), c.rgb, 0.9);
+    c.rgb *= mix(uLo, uHi, hw) * uGain;
+    c.rgb = mix(vec3(l), c.rgb, uSat);
     vec2 d = (vUv - 0.5) * vec2(uAspect / 1.5, 1.0);
     float v = smoothstep(0.95, 0.3, length(d));
     c.rgb *= mix(1.0, mix(0.32, 1.0, v), uVig);
@@ -70,7 +71,7 @@ composer.addPass(new OutputPass());
 const POSES = {
   title: { target: new THREE.Vector3(0.9, 0.5, -1.2), yaw: 6, pitch: 38, height: 14.5, moon: 1.25, hemi: 0.8, shade: 0.75 },
   settings: { target: new THREE.Vector3(-3.3, 2.2, -4.6), yaw: 8, pitch: 26, height: 13.5, moon: 2.4, hemi: 1.3 },
-  crypt: { target: new THREE.Vector3(0, 0.9, 1.0), yaw: 0, pitch: 35, height: 13.2, moon: 2.8, hemi: 1.5 },
+  crypt: { target: new THREE.Vector3(0, 0.65, 2.2), yaw: 0, pitch: 35, height: 17.2, moon: 2.15, hemi: 1.3, pool: 5, sat: 0.7, shade: 0.05 },
 };
 const cam = { target: POSES[START].target.clone(), yaw: POSES[START].yaw, pitch: POSES[START].pitch, height: POSES[START].height };
 let shake = 0;
@@ -142,8 +143,9 @@ function go(next) {
     combat.setVisible(false); combat.active = false; ui.loot(false); ui.banner(null);
   }
   grade.uniforms.uDim.value = next === 'settings' ? 0.92 : 1;
-  const pose = POSES[next] || POSES.title; world.setMood(pose.moon, pose.hemi);
+  const pose = POSES[next] || POSES.title; world.setMood(pose.moon, pose.hemi, pose.pool);
   grade.uniforms.uShade.value = pose.shade || 0;
+  grade.uniforms.uSat.value = pose.sat ?? 0.9; grade.uniforms.uGain.value = pose.gain ?? 1;
   if (!prev || FREEZE) { const p = POSES[next] || POSES.title; cam.target.copy(p.target); cam.yaw = p.yaw; cam.pitch = p.pitch; cam.height = p.height; }
   if (PASS === 'clay') applyClay();
 }
@@ -222,6 +224,13 @@ function readMove() {
 // ---------------------------------------------------------------- loop
 const telemetry = window.__crawler = { ready: false, frozen: FREEZE, state: START };
 window.__crawlerProject = (x, z) => project(new THREE.Vector3(x, 0.5, z));
+// Tuning hook for tools/fidelity/search.mjs: adjust camera, grade and lights without a reload.
+window.__crawlerDebug = {
+  pose: p => { if (p.target) cam.target.set(...p.target); for (const k of ['yaw', 'pitch', 'height']) if (p[k] !== undefined) cam[k] = p[k]; },
+  grade: g => { const u = grade.uniforms; if (g.lo) u.uLo.value.set(...g.lo); if (g.hi) u.uHi.value.set(...g.hi); for (const k of ['sat', 'gain', 'shade', 'dim', 'vig']) if (g[k] !== undefined) u['u' + k[0].toUpperCase() + k.slice(1)].value = g[k]; },
+  lights: l => { if (l.moon !== undefined) world.moon.intensity = l.moon; if (l.pool !== undefined) world.pool.intensity = l.pool; if (l.hemi !== undefined) world.hemi.intensity = l.hemi; if (l.candles !== undefined) world.lights.forEach(x => { x.userData.base = x.userData.base0 ??= x.userData.base; x.userData.base = x.userData.base0 * l.candles; x.intensity = x.userData.base; }); if (l.exposure !== undefined) renderer.toneMappingExposure = l.exposure; if (l.moonColor) world.moon.color.set(l.moonColor); if (l.hemiColor) world.hemi.color.set(l.hemiColor); },
+  state: () => ({ cam: { target: cam.target.toArray(), yaw: cam.yaw, pitch: cam.pitch, height: cam.height } }),
+};
 Object.defineProperties(telemetry, {
   selectedMenu: { enumerable: true, get: () => ['ENTER THE CRYPT', 'SETTINGS', 'QUIT'][ui.titleSel] },
   settingsFocus: { enumerable: true, get: () => ui.focusRow },
