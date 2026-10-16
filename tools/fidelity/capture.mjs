@@ -17,7 +17,8 @@ const args = Object.fromEntries(process.argv.slice(2).reduce((a, v, i, arr) => (
 const base = args.base || 'http://localhost:8000';
 const out = resolve(args.out || 'artifacts/validation');
 const screens = (args.screens || 'title,settings,crypt').split(',');
-const frame = args.frame === 'ref' ? '&frame=ref' : '';
+const frame = (args.frame === 'ref' ? '&frame=ref' : '') + (args.extra ? `&${args.extra}` : '');
+const suffix = args.suffix || 'runtime';
 const NAME = { title: 'ashen-reliquary-title', settings: 'ashen-reliquary-settings', crypt: 'ashen-reliquary-crypt' };
 
 let pw;
@@ -32,7 +33,7 @@ for (const s of screens) {
   await page.goto(`${base}/?state=${s}&freeze=1${frame}`, { waitUntil: 'networkidle' });
   await page.waitForFunction(() => window.__crawler && window.__crawler.ready, null, { timeout: 60000 });
   await page.waitForTimeout(400);
-  const file = `${out}/${NAME[s]}-runtime.png`;
+  const file = `${out}/${NAME[s]}-${suffix}.png`;
   await page.screenshot({ path: file });
   console.log(`captured ${file}`);
 }

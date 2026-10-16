@@ -13,6 +13,11 @@ import { initAudio, sfx, setVolumes, updateAudio } from './audio.js';
 
 const Q = new URLSearchParams(location.search);
 const FREEZE = Q.get('freeze') === '1';
+// Diagnostic render modes used to compare geometry against the image-run reference passes:
+// ?pass=clay (uniform matte white, no textures or coloured light), ?ui=0, ?actors=0.
+const PASS = Q.get('pass');
+const SHOW_UI = Q.get('ui') !== '0', SHOW_ACTORS = Q.get('actors') !== '0';
+if (!SHOW_UI) document.body.classList.add('no-ui');
 const START = ['title', 'settings', 'crypt'].includes(Q.get('state')) ? Q.get('state') : 'title';
 if (Q.get('frame') === 'ref') document.body.classList.add('frame-ref');
 const FROZEN_TIME = 1.7;
@@ -131,7 +136,7 @@ function go(next) {
   const prev = state; state = next; telemetry.state = next;
   ui.show(next);
   if (next === 'crypt') {
-    combat.reset(FREEZE); combat.setVisible(true);
+    combat.reset(FREEZE); combat.setVisible(SHOW_ACTORS);
     ui.loot(FREEZE); ui.banner(null);
   } else if (next !== 'quit') {
     combat.setVisible(false); combat.active = false; ui.loot(false); ui.banner(null);
@@ -140,6 +145,29 @@ function go(next) {
   const pose = POSES[next] || POSES.title; world.setMood(pose.moon, pose.hemi);
   grade.uniforms.uShade.value = pose.shade || 0;
   if (!prev || FREEZE) { const p = POSES[next] || POSES.title; cam.target.copy(p.target); cam.yaw = p.yaw; cam.pitch = p.pitch; cam.height = p.height; }
+  if (PASS === 'clay') applyClay();
+}
+
+// Clay pass: every opaque surface becomes one matte white material under even light; glows,
+// fog, decals and post-processing are removed so only geometry and form remain.
+let clayApplied = false;
+function applyClay() {
+  if (clayApplied) return; clayApplied = true;
+  const clay = new THREE.MeshStandardMaterial({ color: '#d9d9d9', roughness: 1, metalness: 0 });
+  scene.traverse(o => {
+    if (o.isLight) { if (!o.isHemisphereLight && !o.isAmbientLight) o.visible = false; return; }
+    if (!(o.isMesh || o.isSprite || o.isPoints)) return;
+    const m = Array.isArray(o.material) ? o.material[0] : o.material;
+    const glow = o.isSprite || o.isPoints || m.transparent || m.blending === THREE.AdditiveBlending || m.isMeshBasicMaterial;
+    if (glow) { o.visible = false; return; }
+    if (m.alphaTest > 0 && m.map) { o.material = clay.clone(); o.material.map = m.map; o.material.alphaTest = m.alphaTest; o.material.color.set('#d9d9d9'); o.material.side = m.side; return; }
+    o.material = clay;
+  });
+  scene.add(new THREE.AmbientLight('#ffffff', 0.9));
+  world.hemi.color.set('#ffffff'); world.hemi.groundColor.set('#8a8a8a'); world.hemi.intensity = 2.2;
+  scene.fog = null; scene.background = new THREE.Color('#dcdcdc');
+  bloom.enabled = false; grade.enabled = false; renderer.toneMapping = THREE.NoToneMapping;
+  renderer.shadowMap.enabled = false;
 }
 
 // ---------------------------------------------------------------- input
