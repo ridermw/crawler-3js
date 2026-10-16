@@ -487,6 +487,7 @@ export class World {
     }
   }
 
+  setCandleScale(k) { for (const l of this.lights) { l.userData.base0 ??= l.userData.base; l.userData.base = l.userData.base0 * k; l.intensity = l.userData.base; } }
   setMood(moon, hemi, pool = 0) { this.moon.intensity = moon; this.hemi.intensity = hemi; this.pool.intensity = pool; }
 
   // ------------------------------------------------------------ per-frame

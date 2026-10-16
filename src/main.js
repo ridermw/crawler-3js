@@ -72,7 +72,7 @@ composer.addPass(new OutputPass());
 // ---------------------------------------------------------------- camera poses
 // pitch/yaw in degrees; height = vertical extent of the orthographic view in world units.
 const POSES = {
-  title: { target: new THREE.Vector3(0.9, 0.5, -1.2), yaw: 6, pitch: 38, height: 14.5, moon: 1.25, hemi: 0.8, shade: 0.75 },
+  title: { target: new THREE.Vector3(0.0, -0.75, -0.9), yaw: 9, pitch: 29, height: 13.0, fov: 28, moon: 0.35, hemi: 0.675, candles: 0.8, shade: 0.3, sat: 0.75, lo: [0.92, 0.99, 1.04] },
   settings: { target: new THREE.Vector3(-3.3, 2.2, -4.6), yaw: 8, pitch: 26, height: 13.5, moon: 2.4, hemi: 1.3 },
   crypt: { target: new THREE.Vector3(0.15, -1.1, 2.2), yaw: 0, pitch: 38, height: 17.2, fov: 8, moon: 2.15, hemi: 1.3, pool: 5, sat: 0.7, shade: 0.05 },
 };
@@ -152,6 +152,8 @@ function go(next) {
   const pose = POSES[next] || POSES.title; world.setMood(pose.moon, pose.hemi, pose.pool);
   grade.uniforms.uShade.value = pose.shade || 0;
   grade.uniforms.uSat.value = pose.sat ?? 0.9; grade.uniforms.uGain.value = pose.gain ?? 1;
+  grade.uniforms.uLo.value.set(...(pose.lo || [0.96, 0.99, 1.04])); grade.uniforms.uHi.value.set(...(pose.hi || [1.04, 1.0, 0.95]));
+  world.setCandleScale(pose.candles ?? 1);
   if (!prev || FREEZE) { const p = POSES[next] || POSES.title; cam.target.copy(p.target); cam.yaw = p.yaw; cam.pitch = p.pitch; cam.height = p.height; cam.fov = p.fov ?? 4; }
   if (PASS === 'clay') applyClay();
 }
@@ -265,7 +267,7 @@ window.__crawlerProject = (x, z) => project(new THREE.Vector3(x, 0.5, z));
 window.__crawlerDebug = {
   pose: p => { if (p.target) cam.target.set(...p.target); for (const k of ['yaw', 'pitch', 'height', 'fov']) if (p[k] !== undefined) cam[k] = p[k]; },
   grade: g => { const u = grade.uniforms; if (g.lo) u.uLo.value.set(...g.lo); if (g.hi) u.uHi.value.set(...g.hi); for (const k of ['sat', 'gain', 'shade', 'dim', 'vig']) if (g[k] !== undefined) u['u' + k[0].toUpperCase() + k.slice(1)].value = g[k]; },
-  lights: l => { if (l.moon !== undefined) world.moon.intensity = l.moon; if (l.pool !== undefined) world.pool.intensity = l.pool; if (l.hemi !== undefined) world.hemi.intensity = l.hemi; if (l.candles !== undefined) world.lights.forEach(x => { x.userData.base = x.userData.base0 ??= x.userData.base; x.userData.base = x.userData.base0 * l.candles; x.intensity = x.userData.base; }); if (l.exposure !== undefined) renderer.toneMappingExposure = l.exposure; if (l.moonColor) world.moon.color.set(l.moonColor); if (l.hemiColor) world.hemi.color.set(l.hemiColor); },
+  lights: l => { if (l.moon !== undefined) world.moon.intensity = l.moon; if (l.pool !== undefined) world.pool.intensity = l.pool; if (l.hemi !== undefined) world.hemi.intensity = l.hemi; if (l.candles !== undefined) world.setCandleScale(l.candles); if (l.exposure !== undefined) renderer.toneMappingExposure = l.exposure; if (l.moonColor) world.moon.color.set(l.moonColor); if (l.hemiColor) world.hemi.color.set(l.hemiColor); },
   state: () => ({ cam: { target: cam.target.toArray(), yaw: cam.yaw, pitch: cam.pitch, height: cam.height, fov: cam.fov } }),
 };
 Object.defineProperties(telemetry, {
