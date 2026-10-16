@@ -79,20 +79,31 @@ for (const key of ['1', '2', '3', '4', 'q']) {
 }
 await shot('abilities');
 
-// Fight: chase the warden and cleave until it falls (abilities as they come off cooldown).
+// Fight: a simple bot clears the nearest enemy first, backs out of the warden's telegraphed nova,
+// drinks the vial when hurt and spends abilities as they come off cooldown.
 const t0 = Date.now(); let lastHp = 100;
-while (Date.now() - t0 < 90000) {
+const hold = async (keysDown, ms) => { for (const k of keysDown) await page.keyboard.down(k); await sleep(ms); for (const k of keysDown) await page.keyboard.up(k); };
+const dirKeys = (dx, dz) => { const k = []; if (dz < -0.3) k.push('KeyW'); if (dz > 0.3) k.push('KeyS'); if (dx < -0.3) k.push('KeyA'); if (dx > 0.3) k.push('KeyD'); return k; };
+while (Date.now() - t0 < 150000) {
   t = await T();
   if (t.outcome) break;
-  if (t.hp < 55 && t.cooldownSeconds.Q === 0) await page.keyboard.press('KeyQ');
-  const target = t.enemies.find(e => e.kind === 'warden');
-  if (!target) break;
+  if (t.hp < 60 && t.cooldownSeconds.Q === 0) await page.keyboard.press('KeyQ');
+  const warden = t.enemies.find(e => e.kind === 'warden');
+  if (!warden) break;
+  if (warden.nova && Math.hypot(warden.x - t.player.x, warden.z - t.player.z) < 4) { await hold(dirKeys(t.player.x - warden.x, t.player.z - warden.z), 300); continue; }
+  const near = t.enemies.map(e => ({ ...e, d: Math.hypot(e.x - t.player.x, e.z - t.player.z) })).sort((a, b) => a.d - b.d);
+  const thrall = near.find(e => e.kind === 'thrall' && e.d < 5);
+  const target = thrall || warden;
   const dx = target.x - t.player.x, dz = target.z - t.player.z, d = Math.hypot(dx, dz);
-  // aim by hovering the mouse over the warden's screen position
   const scr = await page.evaluate(([x, z]) => window.__crawlerProject?.(x, z), [target.x, target.z]);
   if (scr) await page.mouse.move(scr.x, scr.y);
-  if (d > 1.6) { await page.keyboard.down(dz < 0 ? 'KeyW' : 'KeyS'); if (Math.abs(dx) > 0.5) await page.keyboard.down(dx > 0 ? 'KeyD' : 'KeyA'); await sleep(140); for (const k of ['KeyW', 'KeyS', 'KeyA', 'KeyD']) await page.keyboard.up(k); }
-  else { for (const k of ['Digit2', 'Digit3', 'Digit4', 'Digit1']) { if ((await T()).cooldownSeconds[k.slice(-1)] === 0) { await page.keyboard.press(k); break; } } await sleep(160); }
+  if (d > 1.7) await hold(dirKeys(dx / d, dz / d), 140);
+  else {
+    const crowd = near.filter(e => e.d < 3).length;
+    const order = crowd >= 2 ? ['4', '2', '1'] : ['2', '3', '1'];
+    for (const k of order) if ((await T()).cooldownSeconds[k] === 0) { await page.keyboard.press(`Digit${k}`); break; }
+    await sleep(160);
+  }
   if (t.bossHp < lastHp - 20) { lastHp = t.bossHp; console.log(`     warden ${t.bossHp}%  knight ${t.hp}hp`); }
 }
 t = await T();

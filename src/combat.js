@@ -10,7 +10,7 @@ export const ABILITIES = [
   { key: '4', id: 'ward', name: 'Consecration Ward', cd: 16, cost: 30 },
   { key: 'Q', id: 'vial', name: 'Crimson Vial', cd: 20, cost: 0 },
 ];
-const MAX_HP = 100, MAX_ES = 75, WARDEN_HP = 260, THRALL_HP = 40;
+const MAX_HP = 100, MAX_ES = 75, WARDEN_HP = 400, THRALL_HP = 60;
 // Characters are authored at human scale; the crypt reads at a slightly heroic scale.
 const ACTOR_SCALE = 1.3;
 
@@ -486,13 +486,13 @@ export class Combat {
       else {
         e.face(dx, dz, 1 - Math.exp(-dt * 8));
         if (e.anim === 'attack') {
-          if (e.animT > 0.45 && !e.struck) { e.struck = true; if (d < 1.6) { this.hurtPlayer(5 + Math.floor(this.r() * 3)); this.hooks.sfx?.('clang'); } }
+          if (e.animT > 0.45 && !e.struck) { e.struck = true; if (d < 1.6) { this.hurtPlayer(7 + Math.floor(this.r() * 4)); this.hooks.sfx?.('clang'); } }
           if (e.animT > 0.8) e.play('idle');
         } else if (d > 1.25) {
-          const sp = 2.1 * dt; e.pos.x += dx / d * sp; e.pos.z += dz / d * sp; e.walk += dt * 8; e.walkAmt = Math.min(1, e.walkAmt + dt * 5);
+          const sp = 2.6 * dt; e.pos.x += dx / d * sp; e.pos.z += dz / d * sp; e.walk += dt * 8; e.walkAmt = Math.min(1, e.walkAmt + dt * 5);
         } else {
           e.walkAmt = Math.max(0, e.walkAmt - dt * 5);
-          if (e.cd <= 0) { e.play('attack'); e.struck = false; e.cd = 1.4 + this.r() * 0.6; }
+          if (e.cd <= 0) { e.play('attack'); e.struck = false; e.cd = 1.1 + this.r() * 0.5; }
         }
       }
       // separation
@@ -509,24 +509,43 @@ export class Combat {
       if (e.animT > 0.6 && !e.fired) {
         e.fired = true;
         const gp = new THREE.Vector3(); e.J.gem.getWorldPosition(gp);
-        const n = e.hp < e.maxHp * 0.5 ? 3 : 1;
+        const n = e.hp < e.maxHp * 0.25 ? 5 : e.hp < e.maxHp * 0.5 ? 3 : 1;
         for (let s = 0; s < n; s++) {
-          const a = Math.atan2(dx, dz) + (s - (n - 1) / 2) * 0.28;
+          const a = Math.atan2(dx, dz) + (s - (n - 1) / 2) * 0.24;
           const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), mats().gem); mesh.position.set(gp.x, 1.1, gp.z);
           this.group.add(mesh);
-          this.projectiles.push({ mesh, vel: new THREE.Vector3(Math.sin(a) * 6.5, 0, Math.cos(a) * 6.5), life: 3, max: 3, dmg: 8 });
+          this.projectiles.push({ mesh, vel: new THREE.Vector3(Math.sin(a) * 7.5, 0, Math.cos(a) * 7.5), life: 3, max: 3, dmg: 11 });
         }
         this.hooks.sfx?.('bolt');
       }
       if (e.animT > 1.0) e.play('idle');
       return;
     }
-    if (e.summonCd <= 0 && this.enemies.filter(x => !x.dead && x.kind === 'thrall').length < 3) {
-      e.summonCd = 14; const sp = this.world.spawns[Math.floor(this.r() * this.world.spawns.length)];
+    // Grave Nova: a telegraphed ring of crimson fire when the knight closes to melee range.
+    e.novaCd = (e.novaCd ?? 3) - dt;
+    if (e.nova) {
+      e.nova.t -= dt;
+      if (e.nova.t <= 0) {
+        const kp = this.knight.pos, dd = Math.hypot(kp.x - e.pos.x, kp.z - e.pos.z);
+        this.ring(e.pos.clone().setY(0.06), '#ff3a20', 0.45, 7.2); this.hooks.sfx?.('bash'); this.hooks.shake?.(0.15);
+        this.burst(e.pos.clone().setY(0.3), 14, { tex: this.tex.disc, color: '#ff4020', size: 0.3, life: 0.5, additive: true, speed: 5, up: 0.3 });
+        if (dd < 3.3) { this.hurtPlayer(16); if (dd > 1e-3) this.knight.pos.add(new THREE.Vector3((kp.x - e.pos.x) / dd * 1.2, 0, (kp.z - e.pos.z) / dd * 1.2)); }
+        e.nova = null;
+      }
+      return;
+    }
+    if (d < 3.0 && e.novaCd <= 0) {
+      e.novaCd = e.hp < e.maxHp * 0.5 ? 4.5 : 6.5; e.nova = { t: 0.8 }; e.play('cast');
+      this.ring(e.pos.clone().setY(0.05), '#ff5030', 0.8, 6.6); this.hooks.sfx?.('summon');
+      return;
+    }
+    const cap = e.hp < e.maxHp * 0.5 ? 4 : 3;
+    if (e.summonCd <= 0 && this.enemies.filter(x => !x.dead && x.kind === 'thrall').length < cap) {
+      e.summonCd = e.hp < e.maxHp * 0.5 ? 8 : 11; const sp = this.world.spawns[Math.floor(this.r() * this.world.spawns.length)];
       const t = this.spawnEnemy('thrall', sp[0], sp[1], 20 + Math.floor(this.r() * 1000));
       this.ring(new THREE.Vector3(sp[0], 0.05, sp[1]), '#ff4030', 0.8, 3); this.hooks.sfx?.('summon'); t.cd = 1.5;
     }
-    if (e.castCd <= 0 && d < 12) { e.castCd = 2.6 + this.r(); e.play('cast'); e.fired = false; return; }
+    if (e.castCd <= 0 && d < 12) { e.castCd = 2.0 + this.r() * 0.8; e.play('cast'); e.fired = false; return; }
     const want = d < 4.5 ? -1 : d > 7.5 ? 1 : 0;
     if (want) { const sp = 1.5 * dt * want; e.pos.x += dx / d * sp; e.pos.z += dz / d * sp; e.walk += dt * 4; e.walkAmt = Math.min(1, e.walkAmt + dt * 3); }
     else e.walkAmt = Math.max(0, e.walkAmt - dt * 3);
@@ -633,7 +652,7 @@ export class Combat {
       cooldownSeconds: Object.fromEntries(ABILITIES.map(a => [a.key, +this.cooldowns[a.key].toFixed(2)])),
       selected: this.selected, outcome: this.outcome,
       player: { x: +k.pos.x.toFixed(2), z: +k.pos.z.toFixed(2), facing: +k.facing.toFixed(3) },
-      enemies: this.enemies.filter(e => !e.dead).map(e => ({ kind: e.kind, hp: Math.round(e.hp), x: +e.pos.x.toFixed(2), z: +e.pos.z.toFixed(2) })),
+      enemies: this.enemies.filter(e => !e.dead).map(e => ({ kind: e.kind, hp: Math.round(e.hp), x: +e.pos.x.toFixed(2), z: +e.pos.z.toFixed(2), nova: !!e.nova })),
     };
   }
   setVisible(v) { this.group.visible = v; }

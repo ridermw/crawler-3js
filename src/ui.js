@@ -24,7 +24,7 @@ export class UI {
     const lock = $('#titleLockup'), lc = P.titleLockup(2);
     lock.width = lc.width; lock.height = lc.height; lock.getContext('2d').drawImage(lc, 0, 0);
     const blit = (el, w, h, opts) => { const c = P.dividerCanvas(w, h, opts); el.width = w; el.height = h; el.getContext('2d').drawImage(c, 0, 0); };
-    blit($('#titleDivider'), 600, 36);
+    blit($('#titleDivider'), 640, 52);
     $$('.panel-divider').forEach(el => blit(el, 1022, 28));
     const key = P.keyIcon(64); $('#keyIcon').getContext('2d').drawImage(key, 0, 0);
     const bar = $('#actionbar'); bar.innerHTML = '';
