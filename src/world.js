@@ -205,7 +205,7 @@ export class World {
           const parts = split ? [[cz - d / 4, d / 2], [cz + d / 4, d / 2]] : [[cz, d]];
           for (const [pz, pd] of parts) {
             const settle = inside ? (r() - 0.5) * 0.03 : (r() - 0.5) * 0.12;
-            this.slab(w - 0.06, 0.2, pd - 0.06, cx, -0.1 + settle, pz, { key: 'floor', rx: (r() - 0.5) * 0.02, rz: (r() - 0.5) * 0.02, tint, bevel: 0.035, uv: 3.2 });
+            this.slab(w - 0.06, 0.2, pd - 0.06, cx, -0.1 + settle, pz, { key: 'floor', rx: (r() - 0.5) * 0.02, rz: (r() - 0.5) * 0.02, tint, bevel: 0.035, uv: 2.0 });
           }
         }
         x += w;
@@ -434,13 +434,13 @@ export class World {
 
   // ------------------------------------------------------------ lights
   lighting() {
-    const moon = new THREE.DirectionalLight('#8BA7B8', 1.6);
-    moon.position.set(-9, 18, 4); moon.target.position.set(0, 0, -1);
+    const moon = new THREE.DirectionalLight('#a9b9c4', 2.8);
+    moon.position.set(-6, 24, 3); moon.target.position.set(0, 0, -1);
     moon.castShadow = true; moon.shadow.mapSize.set(2048, 2048);
     Object.assign(moon.shadow.camera, { left: -17, right: 17, top: 17, bottom: -17, near: 1, far: 60 });
     moon.shadow.bias = -0.0005; moon.shadow.normalBias = 0.03;
     this.scene.add(moon, moon.target); this.moon = moon;
-    this.hemi = new THREE.HemisphereLight('#4a5a6a', '#0B0D10', 0.9); this.scene.add(this.hemi);
+    this.hemi = new THREE.HemisphereLight('#727c86', '#1e1d1c', 1.5); this.scene.add(this.hemi);
     const warm = (x, y, z, i, d = 8, col = '#D69A45') => { const l = new THREE.PointLight(col, i, d, 1.5); l.position.set(x, y, z); l.userData.base = i; this.scene.add(l); this.lights.push(l); return l; };
     warm(0, 2.6, -5.6, 22, 9); warm(-2.4, 1.5, -6.6, 9, 6); warm(2.4, 1.5, -6.6, 9, 6);
     warm(-8.5, 1.4, -5.2, 6, 5); warm(8.5, 1.4, -5.2, 6, 5);
@@ -454,7 +454,7 @@ export class World {
     const r = this.r;
     for (let k = 0; k < 7; k++) {
       const tex = this.tex.fog.clone(); tex.needsUpdate = true; tex.repeat.set(1.5, 1.5);
-      const mat = new THREE.MeshBasicMaterial({ map: tex, color: '#7d93a3', transparent: true, opacity: 0.09, depthWrite: false });
+      const mat = new THREE.MeshBasicMaterial({ map: tex, color: '#6c757c', transparent: true, opacity: 0.06, depthWrite: false });
       const m = new THREE.Mesh(new THREE.PlaneGeometry(14, 14), mat);
       m.rotation.x = -Math.PI / 2; m.position.set(P.range(r, -9, 9), 0.25 + k * 0.12, P.range(r, -3, 11));
       m.userData.v = [P.range(r, -0.01, 0.01), P.range(r, -0.006, 0.006)];
@@ -466,6 +466,8 @@ export class World {
       m.position.set(x, 5, z); m.rotation.z = 0.38; this.root.add(m);
     }
   }
+
+  setMood(moon, hemi) { this.moon.intensity = moon; this.hemi.intensity = hemi; }
 
   // ------------------------------------------------------------ per-frame
   update(t, camera) {

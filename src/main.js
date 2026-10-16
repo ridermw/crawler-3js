@@ -24,7 +24,7 @@ renderer.setPixelRatio(FREEZE ? 1 : Math.min(window.devicePixelRatio, 1.5));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
+renderer.toneMappingExposure = 1.3;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#07090c');
@@ -38,9 +38,9 @@ const bloom = new UnrealBloomPass(new THREE.Vector2(512, 512), 0.45, 0.5, 0.9);
 composer.addPass(bloom);
 // Cold-blue shadow / warm-amber highlight split-toning, vignette and screen dimming (linear HDR).
 const CryptGrade = {
-  uniforms: { tDiffuse: { value: null }, uVig: { value: 1 }, uDim: { value: 1 }, uAspect: { value: 16 / 9 } },
+  uniforms: { tDiffuse: { value: null }, uVig: { value: 1 }, uDim: { value: 1 }, uAspect: { value: 16 / 9 }, uShade: { value: 0 } },
   vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
-  fragmentShader: `uniform sampler2D tDiffuse; uniform float uVig, uDim, uAspect; varying vec2 vUv;
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uVig, uDim, uAspect, uShade; varying vec2 vUv;
   void main(){
     vec4 c = texture2D(tDiffuse, vUv);
     float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722));
@@ -50,6 +50,9 @@ const CryptGrade = {
     vec2 d = (vUv - 0.5) * vec2(uAspect / 1.5, 1.0);
     float v = smoothstep(0.95, 0.3, length(d));
     c.rgb *= mix(1.0, mix(0.32, 1.0, v), uVig);
+    // menu screens: a soft pool of shadow behind the lower-left interface
+    vec2 sd = (vUv - vec2(0.36, 0.2)) * vec2(uAspect / 1.5, 1.0) * vec2(1.0, 1.6);
+    c.rgb *= 1.0 - uShade * smoothstep(0.62, 0.0, length(sd));
     c.rgb *= uDim;
     gl_FragColor = c;
   }`,
@@ -60,9 +63,9 @@ composer.addPass(new OutputPass());
 // ---------------------------------------------------------------- camera poses
 // pitch/yaw in degrees; height = vertical extent of the orthographic view in world units.
 const POSES = {
-  title: { target: new THREE.Vector3(0.9, 1.0, -5.0), yaw: 32, pitch: 35, height: 10.2 },
-  settings: { target: new THREE.Vector3(-1.9, 2.0, -5.6), yaw: 8, pitch: 26, height: 9.6 },
-  crypt: { target: new THREE.Vector3(0, 0.9, 1.0), yaw: 0, pitch: 35, height: 13.2 },
+  title: { target: new THREE.Vector3(0.9, 0.5, -1.2), yaw: 6, pitch: 38, height: 14.5, moon: 1.25, hemi: 0.8, shade: 0.75 },
+  settings: { target: new THREE.Vector3(-2.6, 1.8, -5.2), yaw: 8, pitch: 26, height: 10.8, moon: 2.4, hemi: 1.3 },
+  crypt: { target: new THREE.Vector3(0, 0.9, 1.0), yaw: 0, pitch: 35, height: 13.2, moon: 2.8, hemi: 1.5 },
 };
 const cam = { target: POSES[START].target.clone(), yaw: POSES[START].yaw, pitch: POSES[START].pitch, height: POSES[START].height };
 let shake = 0;
@@ -134,6 +137,8 @@ function go(next) {
     combat.setVisible(false); combat.active = false; ui.loot(false); ui.banner(null);
   }
   grade.uniforms.uDim.value = next === 'settings' ? 0.78 : 1;
+  const pose = POSES[next] || POSES.title; world.setMood(pose.moon, pose.hemi);
+  grade.uniforms.uShade.value = pose.shade || 0;
   if (!prev || FREEZE) { const p = POSES[next] || POSES.title; cam.target.copy(p.target); cam.yaw = p.yaw; cam.pitch = p.pitch; cam.height = p.height; }
 }
 

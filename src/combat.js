@@ -249,7 +249,7 @@ export class Combat {
     this.staffLight = new THREE.PointLight('#ff3020', 4, 5, 1.6); this.group.add(this.staffLight);
     this.staffGlow = add(new THREE.Sprite(new THREE.SpriteMaterial({ map: this.tex.disc, color: '#ff4030', blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, opacity: 0.9 })));
     this.staffGlow.scale.setScalar(0.7);
-    this.knightLight = new THREE.PointLight('#9fb0c0', 3, 6, 1.4); this.group.add(this.knightLight);
+    this.knightLight = new THREE.PointLight('#c8d0d8', 9, 7, 1.3); this.group.add(this.knightLight);
   }
 
   spawnEnemy(kind, x, z, seed) {
