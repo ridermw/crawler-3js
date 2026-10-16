@@ -10,7 +10,7 @@ export const ABILITIES = [
   { key: '4', id: 'ward', name: 'Consecration Ward', cd: 16, cost: 30 },
   { key: 'Q', id: 'vial', name: 'Crimson Vial', cd: 20, cost: 0 },
 ];
-const MAX_HP = 100, MAX_ES = 75, WARDEN_HP = 300, THRALL_HP = 40;
+const MAX_HP = 100, MAX_ES = 75, WARDEN_HP = 260, THRALL_HP = 40;
 
 // ---------------------------------------------------------------- materials
 let M = null;
@@ -484,7 +484,7 @@ export class Combat {
       else {
         e.face(dx, dz, 1 - Math.exp(-dt * 8));
         if (e.anim === 'attack') {
-          if (e.animT > 0.45 && !e.struck) { e.struck = true; if (d < 1.6) { this.hurtPlayer(6 + Math.floor(this.r() * 4)); this.hooks.sfx?.('clang'); } }
+          if (e.animT > 0.45 && !e.struck) { e.struck = true; if (d < 1.6) { this.hurtPlayer(5 + Math.floor(this.r() * 3)); this.hooks.sfx?.('clang'); } }
           if (e.animT > 0.8) e.play('idle');
         } else if (d > 1.25) {
           const sp = 2.1 * dt; e.pos.x += dx / d * sp; e.pos.z += dz / d * sp; e.walk += dt * 8; e.walkAmt = Math.min(1, e.walkAmt + dt * 5);
@@ -512,7 +512,7 @@ export class Combat {
           const a = Math.atan2(dx, dz) + (s - (n - 1) / 2) * 0.28;
           const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), mats().gem); mesh.position.set(gp.x, 1.1, gp.z);
           this.group.add(mesh);
-          this.projectiles.push({ mesh, vel: new THREE.Vector3(Math.sin(a) * 6.5, 0, Math.cos(a) * 6.5), life: 3, max: 3, dmg: 10 });
+          this.projectiles.push({ mesh, vel: new THREE.Vector3(Math.sin(a) * 6.5, 0, Math.cos(a) * 6.5), life: 3, max: 3, dmg: 8 });
         }
         this.hooks.sfx?.('bolt');
       }

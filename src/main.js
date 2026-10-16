@@ -128,7 +128,7 @@ applyLive(ui.settings);
 // ---------------------------------------------------------------- state machine
 let state = null;
 function go(next) {
-  const prev = state; state = next;
+  const prev = state; state = next; telemetry.state = next;
   ui.show(next);
   if (next === 'crypt') {
     combat.reset(FREEZE); combat.setVisible(true);
@@ -193,6 +193,13 @@ function readMove() {
 
 // ---------------------------------------------------------------- loop
 const telemetry = window.__crawler = { ready: false, frozen: FREEZE, state: START };
+window.__crawlerProject = (x, z) => project(new THREE.Vector3(x, 0.5, z));
+Object.defineProperties(telemetry, {
+  selectedMenu: { enumerable: true, get: () => ['ENTER THE CRYPT', 'SETTINGS', 'QUIT'][ui.titleSel] },
+  settingsFocus: { enumerable: true, get: () => ui.focusRow },
+  settings: { enumerable: true, get: () => ({ ...ui.settings }) },
+  draft: { enumerable: true, get: () => ({ ...ui.draft }) },
+});
 let time = FREEZE ? FROZEN_TIME : 0, last = performance.now(), frames = 0;
 function frame(now) {
   const dt = FREEZE ? 0 : Math.min(0.05, (now - last) / 1000); last = now; time += dt;
@@ -221,7 +228,7 @@ function frame(now) {
   }
   ui.updateNumbers(dt, project);
   composer.render(dt);
-  Object.assign(telemetry, { state, selectedMenu: ['ENTER THE CRYPT', 'SETTINGS', 'QUIT'][ui.titleSel], settingsFocus: ui.focusRow, settings: { ...ui.settings }, draft: { ...ui.draft }, time: +time.toFixed(3) });
+  Object.assign(telemetry, { state, time: +time.toFixed(3) });
   if (++frames === 4) telemetry.ready = true;
   requestAnimationFrame(frame);
 }
