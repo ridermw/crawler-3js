@@ -96,6 +96,7 @@ def main() -> int:
     ap.add_argument("--screen", required=True, choices=REF)
     ap.add_argument("--groups", default="pose")
     ap.add_argument("--rounds", type=int, default=2)
+    ap.add_argument("--step-scale", type=float, default=1.0, help="scale every initial step (use <1 to refine)")
     ap.add_argument("--init", type=Path, help="JSON with initial pose/grade/lights")
     ap.add_argument("--clay", type=Path, help="register geometry against an image-run clay pass instead of the gate")
     a = ap.parse_args()
@@ -137,7 +138,7 @@ def main() -> int:
 
     best, info = score(vals)
     print(f"start obj={best:.2f} {info} {vals}", flush=True)
-    steps = {n: SPACE[n][3] for n in names}
+    steps = {n: SPACE[n][3] * a.step_scale for n in names}
     for rnd in range(a.rounds):
         for n in names:
             lo, hi = SPACE[n][4], SPACE[n][5]
