@@ -338,7 +338,7 @@ export class World {
     this.obstacles.push({ x, z, r: Math.max(w, d) * 0.55 });
   }
   window(x, y, z, w, h, ry = 0) {
-    const mat = new THREE.MeshBasicMaterial({ map: this.tex.lancet, transparent: true, toneMapped: true, color: '#9fb6c6' });
+    const mat = new THREE.MeshBasicMaterial({ map: this.tex.lancet, transparent: true, toneMapped: true, color: '#6f7d88' });
     const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
     m.position.set(x, y, z); m.rotation.y = ry; this.root.add(m);
     // stone jamb and pointed hood

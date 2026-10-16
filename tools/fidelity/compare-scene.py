@@ -907,7 +907,7 @@ def main(argv: list[str] | None = None) -> int:
             comp_img = build_comparison_image(
                 ref_arr, run_arr, mask, report["legacy"]["cells"]
             )
-            comp_img.parent.mkdir(parents=True, exist_ok=True)
+            Path(comp_path).parent.mkdir(parents=True, exist_ok=True)
             comp_img.save(comp_path)
 
         if args.print_report:

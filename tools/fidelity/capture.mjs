@@ -5,8 +5,9 @@
 //   npm i --no-save playwright-core         # or playwright
 //   node tools/fidelity/capture.mjs [--base http://localhost:8000] [--frame ref|full] [--out artifacts/validation]
 //
-// --frame ref (default) lays the UI out inside the centred 3:2 reference frame, matching the region
-// compare-scene.py scores; --frame full anchors the HUD to the real 16:9 screen edges as in play.
+// --frame full (default) anchors the HUD to the real 16:9 screen edges, exactly as in play; the v2
+// gate maps edge-anchored UI boxes onto 16:9 (--ui-frame auto). --frame ref lays the UI out inside
+// the centred 3:2 reference frame instead.
 //
 // Uses the locally installed Google Chrome (channel "chrome") with GPU rasterisation.
 import { mkdirSync } from 'node:fs';
@@ -16,8 +17,8 @@ const args = Object.fromEntries(process.argv.slice(2).reduce((a, v, i, arr) => (
 const base = args.base || 'http://localhost:8000';
 const out = resolve(args.out || 'artifacts/validation');
 const screens = (args.screens || 'title,settings,crypt').split(',');
-const frame = (args.frame || 'ref') === 'ref' ? '&frame=ref' : '';
-const NAME = { title: 'ashen-reliquary-title', settings: 'ashen-reliquary-settings', crypt: 'ashen-reliquary' };
+const frame = args.frame === 'ref' ? '&frame=ref' : '';
+const NAME = { title: 'ashen-reliquary-title', settings: 'ashen-reliquary-settings', crypt: 'ashen-reliquary-crypt' };
 
 let pw;
 try { pw = await import('playwright'); } catch { pw = await import('playwright-core'); }

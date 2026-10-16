@@ -64,7 +64,7 @@ composer.addPass(new OutputPass());
 // pitch/yaw in degrees; height = vertical extent of the orthographic view in world units.
 const POSES = {
   title: { target: new THREE.Vector3(0.9, 0.5, -1.2), yaw: 6, pitch: 38, height: 14.5, moon: 1.25, hemi: 0.8, shade: 0.75 },
-  settings: { target: new THREE.Vector3(-2.6, 1.8, -5.2), yaw: 8, pitch: 26, height: 10.8, moon: 2.4, hemi: 1.3 },
+  settings: { target: new THREE.Vector3(-3.3, 2.2, -4.6), yaw: 8, pitch: 26, height: 13.5, moon: 2.4, hemi: 1.3 },
   crypt: { target: new THREE.Vector3(0, 0.9, 1.0), yaw: 0, pitch: 35, height: 13.2, moon: 2.8, hemi: 1.5 },
 };
 const cam = { target: POSES[START].target.clone(), yaw: POSES[START].yaw, pitch: POSES[START].pitch, height: POSES[START].height };
@@ -136,7 +136,7 @@ function go(next) {
   } else if (next !== 'quit') {
     combat.setVisible(false); combat.active = false; ui.loot(false); ui.banner(null);
   }
-  grade.uniforms.uDim.value = next === 'settings' ? 0.78 : 1;
+  grade.uniforms.uDim.value = next === 'settings' ? 0.92 : 1;
   const pose = POSES[next] || POSES.title; world.setMood(pose.moon, pose.hemi);
   grade.uniforms.uShade.value = pose.shade || 0;
   if (!prev || FREEZE) { const p = POSES[next] || POSES.title; cam.target.copy(p.target); cam.yaw = p.yaw; cam.pitch = p.pitch; cam.height = p.height; }
