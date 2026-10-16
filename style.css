@@ -21,14 +21,16 @@ body.frame-ref #ui { left: 50%; right: auto; width: min(100vw, calc(100vh * 1.5)
 .screen button, .screen .row, .screen .menu, .screen .panel { pointer-events: auto; }
 #fx-layer { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
 
-/* positioned helpers: L = left, T = top, from the mock origin; R = distance from right edge */
-.lockup { position: absolute; left: calc(130 * var(--u)); top: calc(428 * var(--u)); width: calc(520 * var(--u)); height: calc(150 * var(--u)); }
+/* Centre-anchored elements (title block, settings panel, action bar) use calc(50% + (x - 768) * u) so they
+   sit where the mock puts them inside the centred 3:2 frame; corner HUD widgets and footers anchor to
+   the real screen edges. */
+.lockup { position: absolute; left: calc(50% + -638 * var(--u)); top: calc(428 * var(--u)); width: calc(520 * var(--u)); height: calc(150 * var(--u)); }
 
 /* ---------------------------------------------------------------- title */
-.title-divider { position: absolute; left: calc(240 * var(--u)); top: calc(582 * var(--u)); width: calc(300 * var(--u)); height: calc(18 * var(--u)); }
-.subtitle { position: absolute; left: calc(140 * var(--u)); width: calc(500 * var(--u)); top: calc(616 * var(--u)); text-align: center;
+.title-divider { position: absolute; left: calc(50% + -528 * var(--u)); top: calc(582 * var(--u)); width: calc(300 * var(--u)); height: calc(18 * var(--u)); }
+.subtitle { position: absolute; left: calc(50% + -628 * var(--u)); width: calc(500 * var(--u)); top: calc(616 * var(--u)); text-align: center;
   font-size: calc(16.5 * var(--u)); letter-spacing: 0.2em; color: #b8b3a6; text-shadow: 0 1px 2px #000; }
-.menu { position: absolute; left: calc(240 * var(--u)); top: calc(672 * var(--u)); width: calc(320 * var(--u)); }
+.menu { position: absolute; left: calc(50% + -528 * var(--u)); top: calc(672 * var(--u)); width: calc(320 * var(--u)); }
 .menu-item { display: block; height: calc(50 * var(--u)); line-height: calc(40 * var(--u)); font-size: calc(21 * var(--u)); letter-spacing: 0.16em; color: #c9c3b4; text-shadow: 0 1px 3px #000; font-weight: 500; text-align: left; }
 .menu-item.sel { color: var(--gold); text-shadow: 0 0 calc(10 * var(--u)) rgba(214,154,69,0.35), 0 1px 3px #000; }
 .menu-item:hover { color: #efe4c8; }
@@ -36,14 +38,14 @@ body.frame-ref #ui { left: 50%; right: auto; width: min(100vw, calc(100vh * 1.5)
 .menu-marker::before { content: ''; position: absolute; left: 0; right: calc(8 * var(--u)); top: 50%; height: 1px; background: linear-gradient(90deg, rgba(214,154,69,0), #d9b06a); }
 .menu-marker i { position: absolute; right: calc(4 * var(--u)); top: 50%; width: calc(9 * var(--u)); height: calc(9 * var(--u)); transform: translate(0, -50%) rotate(45deg); border: 1px solid #e3be78; background: var(--night); box-shadow: 0 0 calc(6 * var(--u)) rgba(214,154,69,0.6); }
 .menu-marker::after { content: ''; position: absolute; right: calc(-3 * var(--u)); top: calc(-14 * var(--u)); bottom: calc(-14 * var(--u)); width: 1px; background: linear-gradient(180deg, rgba(214,154,69,0), rgba(214,154,69,0.7) 50%, rgba(214,154,69,0)); }
-.hint-small { position: absolute; left: calc(241 * var(--u)); top: calc(843 * var(--u)); font-size: calc(13 * var(--u)); letter-spacing: 0.16em; color: #8f8b80; }
+.hint-small { position: absolute; left: calc(50% + -527 * var(--u)); top: calc(843 * var(--u)); font-size: calc(13 * var(--u)); letter-spacing: 0.16em; color: #8f8b80; }
 .hint-small.center { left: 0; right: 0; text-align: center; top: 56%; }
 .footer { position: absolute; top: calc(963 * var(--u)); font-size: calc(12 * var(--u)); letter-spacing: 0.14em; color: #a29d90; }
 .footer.left { left: calc(104 * var(--u)); }
 .footer.right { right: calc(48 * var(--u)); letter-spacing: 0.04em; font-size: calc(13 * var(--u)); }
 
 /* ---------------------------------------------------------------- settings */
-.panel { position: absolute; left: calc(123 * var(--u)); top: calc(123 * var(--u)); width: calc(597 * var(--u)); height: calc(774 * var(--u));
+.panel { position: absolute; left: calc(50% + -645 * var(--u)); top: calc(123 * var(--u)); width: calc(597 * var(--u)); height: calc(774 * var(--u));
   background: rgba(9, 11, 14, 0.84); border: 1px solid rgba(138,106,53,0.55); border-top: 2px solid #9a7a42;
   box-shadow: inset 0 0 calc(30 * var(--u)) rgba(0,0,0,0.6), 0 0 calc(40 * var(--u)) rgba(0,0,0,0.5); }
 .panel h1 { position: absolute; left: 0; right: 0; top: calc(20 * var(--u)); margin: 0; text-align: center; font-family: var(--serif); font-weight: 500; font-size: calc(43 * var(--u)); letter-spacing: 0.08em; color: #ddd4bd; text-shadow: 0 2px 4px #000; }
@@ -105,7 +107,7 @@ body.frame-ref #ui { left: 50%; right: auto; width: min(100vw, calc(100vh * 1.5)
 .loot { position: absolute; right: calc(6 * var(--u)); top: calc(707 * var(--u)); width: calc(240 * var(--u)); height: calc(46 * var(--u)); display: flex; align-items: center; gap: calc(10 * var(--u)); padding-left: calc(10 * var(--u));
   background: rgba(11,13,16,0.86); border: 1px solid #5f4b2a; font-size: calc(15 * var(--u)); color: #d8cfb7; }
 .loot canvas { width: calc(26 * var(--u)); height: calc(26 * var(--u)); }
-.actionbar { position: absolute; left: calc(495 * var(--u)); top: calc(858 * var(--u)); width: calc(551 * var(--u)); height: calc(136 * var(--u));
+.actionbar { position: absolute; left: calc(50% + -273 * var(--u)); top: calc(858 * var(--u)); width: calc(551 * var(--u)); height: calc(136 * var(--u));
   background: rgba(16,17,20,0.92); border: 1px solid #3b3833; box-shadow: inset 0 0 0 calc(4 * var(--u)) #1c1d20, inset 0 0 0 calc(5 * var(--u)) #34302a, 0 0 0 1px #000; pointer-events: auto; }
 .slot { position: absolute; top: calc(6 * var(--u)); width: calc(88 * var(--u)); height: calc(88 * var(--u)); border: 1px solid #45413b; box-shadow: 0 0 0 1px #000; cursor: pointer; }
 .slot canvas { width: 100%; height: 100%; display: block; }
