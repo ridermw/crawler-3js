@@ -88,27 +88,27 @@ body.frame-ref #ui { left: 50%; right: auto; width: min(100vw, calc(100vh * 1.5)
 .help b:first-child { margin-left: 0; }
 
 /* ---------------------------------------------------------------- combat HUD */
-.objective { position: absolute; left: calc(33 * var(--u)); top: calc(26 * var(--u)); }
+.objective { position: absolute; left: calc(23 * var(--u)); top: calc(28 * var(--u)); }
 .obj-title { font-family: var(--serif); font-size: calc(22 * var(--u)); letter-spacing: 0.04em; color: #d8cfb7; text-shadow: 0 1px 3px #000; }
 .obj-line { margin-top: calc(9 * var(--u)); font-size: calc(15 * var(--u)); color: #c9c2b0; display: flex; align-items: center; gap: calc(10 * var(--u)); text-shadow: 0 1px 2px #000; }
 .obj-diamond { width: calc(9 * var(--u)); height: calc(9 * var(--u)); border: 1px solid #c29a55; transform: rotate(45deg); margin-left: calc(4 * var(--u)); }
 .obj-line.done { color: #9fb98a; text-decoration: line-through; }
-.boss { position: absolute; left: 50%; top: calc(8 * var(--u)); width: calc(394 * var(--u)); transform: translateX(-50%); text-align: center; }
+.boss { position: absolute; left: 50%; top: calc(13 * var(--u)); width: calc(394 * var(--u)); transform: translateX(-50%); text-align: center; }
 .boss-name { font-family: var(--serif); font-size: calc(22 * var(--u)); letter-spacing: 0.05em; color: #d8cfb7; text-shadow: 0 1px 3px #000; }
 .boss-bar { position: relative; margin-top: calc(6 * var(--u)); height: calc(17 * var(--u)); background: #0e0f12; border: 1px solid #45403a; box-shadow: 0 0 0 1px #000; }
 .boss-fill { position: absolute; left: 1px; top: 1px; bottom: 1px; width: 63%; background: #9a2026; box-shadow: inset 0 1px 0 rgba(255,140,120,0.35); transition: width 0.2s; }
 .boss-bar span { position: absolute; inset: 0; font-size: calc(11.5 * var(--u)); line-height: calc(15 * var(--u)); color: #e6d8c4; text-shadow: 0 1px 2px #000; }
 .minimap { position: absolute; right: calc(29 * var(--u)); top: calc(13 * var(--u)); width: calc(221 * var(--u)); height: calc(233 * var(--u)); border: 1px solid #5b5650; box-shadow: 0 0 0 2px #121417, inset 0 0 0 1px #2a2826; background: rgba(11,13,16,0.6); }
 .minimap canvas { width: 100%; height: 100%; display: block; }
-.orb { position: absolute; bottom: calc(75 * var(--u)); width: calc(162 * var(--u)); height: calc(162 * var(--u)); }
-.orb.hp { left: calc(38 * var(--u)); }
-.orb.es { right: calc(48 * var(--u)); }
+.orb { position: absolute; bottom: calc(68 * var(--u)); width: calc(162 * var(--u)); height: calc(162 * var(--u)); }
+.orb.hp { left: calc(51 * var(--u)); }
+.orb.es { right: calc(41 * var(--u)); }
 .orb canvas { width: 100%; height: 100%; }
 .orb-val { position: absolute; left: -50%; right: -50%; top: calc(172 * var(--u)); text-align: center; font-size: calc(16 * var(--u)); color: #d8cfb7; text-shadow: 0 1px 2px #000; }
 .loot { position: absolute; right: calc(6 * var(--u)); bottom: calc(271 * var(--u)); width: calc(240 * var(--u)); height: calc(46 * var(--u)); display: flex; align-items: center; gap: calc(10 * var(--u)); padding-left: calc(10 * var(--u));
   background: rgba(11,13,16,0.86); border: 1px solid #5f4b2a; font-size: calc(15 * var(--u)); color: #d8cfb7; }
 .loot canvas { width: calc(26 * var(--u)); height: calc(26 * var(--u)); }
-.actionbar { position: absolute; left: calc(50% + -273 * var(--u)); bottom: calc(30 * var(--u)); width: calc(551 * var(--u)); height: calc(136 * var(--u));
+.actionbar { position: absolute; left: calc(50% + -273 * var(--u)); bottom: calc(25 * var(--u)); width: calc(551 * var(--u)); height: calc(136 * var(--u));
   background: rgba(16,17,20,0.92); border: 1px solid #3b3833; box-shadow: inset 0 0 0 calc(4 * var(--u)) #1c1d20, inset 0 0 0 calc(5 * var(--u)) #34302a, 0 0 0 1px #000; pointer-events: auto; }
 .slot { position: absolute; top: calc(6 * var(--u)); width: calc(88 * var(--u)); height: calc(88 * var(--u)); border: 1px solid #45413b; box-shadow: 0 0 0 1px #000; cursor: pointer; }
 .slot canvas { width: 100%; height: 100%; display: block; }

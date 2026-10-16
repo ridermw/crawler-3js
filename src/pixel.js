@@ -491,32 +491,46 @@ export function keyIcon(size = 64) {
   return c;
 }
 
-// Brass-rimmed glass orb holding a liquid at the given fill fraction.
+// Brass-rimmed glass orb holding a liquid at the given fill fraction: a pitted tarnished ring with
+// rivets and four cardinal notches around a dark glass well, mottled liquid and a smoky meniscus.
 export function orbCanvas(kind, frac, size = 200) {
-  const { c, g } = makeCanvas(size, size), cx = size / 2, R = size * 0.45, r = R * 0.82;
-  const liquid = kind === 'hp' ? ['#d0383c', '#8E1F24', '#3a0a0e'] : ['#6a8fbf', '#2c4f7c', '#0f1b2c'];
-  // brass frame
-  const fr = g.createRadialGradient(cx - R * 0.3, cx - R * 0.3, R * 0.2, cx, cx, R);
-  fr.addColorStop(0, '#b08d4a'); fr.addColorStop(0.7, '#6d5229'); fr.addColorStop(1, '#2a1f10');
-  g.fillStyle = fr; g.beginPath(); g.arc(cx, cx, R, 0, Math.PI * 2); g.fill();
-  g.strokeStyle = '#1a140b'; g.lineWidth = 2; g.stroke();
-  for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2; g.fillStyle = '#2a1f10'; g.beginPath(); g.arc(cx + Math.cos(a) * R * 0.91, cx + Math.sin(a) * R * 0.91, 2.2, 0, Math.PI * 2); g.fill(); }
+  const { c, g } = makeCanvas(size, size), cx = size / 2, R = size * 0.47, r = R * 0.8;
+  const liquid = kind === 'hp' ? ['#b8282c', '#7a1418', '#2a0507'] : ['#4f73a0', '#253f63', '#0b1626'];
+  const rnd = rng(kind === 'hp' ? 77 : 78);
+  // outer ring: dark bevel, brass band, inner lip
+  g.fillStyle = '#120d07'; g.beginPath(); g.arc(cx, cx, R, 0, Math.PI * 2); g.fill();
+  const band = g.createLinearGradient(0, 0, size, size);
+  band.addColorStop(0, '#b8955a'); band.addColorStop(0.45, '#6e5229'); band.addColorStop(1, '#3a2a14');
+  g.strokeStyle = band; g.lineWidth = R * 0.13; g.beginPath(); g.arc(cx, cx, R * 0.9, 0, Math.PI * 2); g.stroke();
+  g.strokeStyle = '#2a1e0e'; g.lineWidth = 1.5;
+  for (const k of [0.97, 0.83]) { g.beginPath(); g.arc(cx, cx, R * k, 0, Math.PI * 2); g.stroke(); }
+  // engraved tick ring and pitting
+  for (let k = 0; k < 48; k++) { const a = k / 48 * Math.PI * 2; g.strokeStyle = 'rgba(30,20,8,0.7)'; g.lineWidth = 1; g.beginPath(); g.moveTo(cx + Math.cos(a) * R * 0.86, cx + Math.sin(a) * R * 0.86); g.lineTo(cx + Math.cos(a) * R * 0.94, cx + Math.sin(a) * R * 0.94); g.stroke(); }
+  for (let k = 0; k < 160; k++) { const a = rnd() * Math.PI * 2, d = R * (0.84 + rnd() * 0.12); g.fillStyle = `rgba(${rnd() < 0.5 ? '20,14,6' : '200,170,110'},${0.2 + rnd() * 0.3})`; g.fillRect(cx + Math.cos(a) * d, cx + Math.sin(a) * d, 1.2, 1.2); }
+  // cardinal notches
+  for (let k = 0; k < 4; k++) {
+    const a = k * Math.PI / 2 - Math.PI / 2; g.save(); g.translate(cx + Math.cos(a) * R * 0.92, cx + Math.sin(a) * R * 0.92); g.rotate(a + Math.PI / 2);
+    g.fillStyle = '#c7a465'; g.beginPath(); g.moveTo(0, -R * 0.09); g.lineTo(R * 0.05, 0); g.lineTo(0, R * 0.09); g.lineTo(-R * 0.05, 0); g.closePath(); g.fill();
+    g.strokeStyle = '#2a1e0e'; g.lineWidth = 1; g.stroke(); g.restore();
+  }
   // glass well
   g.save(); g.beginPath(); g.arc(cx, cx, r, 0, Math.PI * 2); g.clip();
-  g.fillStyle = '#07090c'; g.fillRect(0, 0, size, size);
-  const top = cx + r - 2 * r * frac;
-  const lg = g.createRadialGradient(cx - r * 0.25, cx - r * 0.1, r * 0.1, cx, cx, r * 1.05);
-  lg.addColorStop(0, liquid[0]); lg.addColorStop(0.55, liquid[1]); lg.addColorStop(1, liquid[2]);
-  g.fillStyle = lg; g.beginPath(); g.moveTo(0, top);
-  for (let x = 0; x <= size; x += 4) g.lineTo(x, top + Math.sin(x * 0.08) * 2);
-  g.lineTo(size, size); g.lineTo(0, size); g.closePath(); g.fill();
-  g.fillStyle = 'rgba(255,255,255,0.12)'; g.fillRect(0, top - 1, size, 2);
-  const sh = g.createRadialGradient(cx, cx, r * 0.6, cx, cx, r); sh.addColorStop(0, 'rgba(0,0,0,0)'); sh.addColorStop(1, 'rgba(0,0,0,0.6)');
-  g.fillStyle = sh; g.fillRect(0, 0, size, size);
-  g.fillStyle = 'rgba(255,255,255,0.16)'; g.beginPath(); g.ellipse(cx - r * 0.3, cx - r * 0.5, r * 0.38, r * 0.2, -0.5, 0, Math.PI * 2); g.fill();
+  const glass = g.createLinearGradient(0, cx - r, 0, cx + r); glass.addColorStop(0, '#2c2e30'); glass.addColorStop(1, '#0a0b0c');
+  g.fillStyle = glass; g.fillRect(0, 0, size, size);
+  const top = cx + r - 2 * r * Math.max(0, Math.min(1, frac));
+  const lg = g.createRadialGradient(cx - r * 0.3, top + r * 0.3, r * 0.05, cx, cx + r * 0.2, r * 1.2);
+  lg.addColorStop(0, liquid[0]); lg.addColorStop(0.5, liquid[1]); lg.addColorStop(1, liquid[2]);
+  g.fillStyle = lg; g.fillRect(0, top, size, size);
+  for (let k = 0; k < 900; k++) { const x = rnd() * size, y = top + rnd() * (size - top); g.fillStyle = `rgba(${rnd() < 0.5 ? '255,255,255' : '0,0,0'},${rnd() * 0.08})`; g.fillRect(x, y, 2, 2); }
+  g.fillStyle = 'rgba(255,255,255,0.18)'; g.fillRect(0, top - 1, size, 1.5);
+  g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(0, top + 1, size, 3);
+  const vig = g.createRadialGradient(cx, cx, r * 0.55, cx, cx, r); vig.addColorStop(0, 'rgba(0,0,0,0)'); vig.addColorStop(1, 'rgba(0,0,0,0.7)');
+  g.fillStyle = vig; g.fillRect(0, 0, size, size);
+  const hl = g.createRadialGradient(cx - r * 0.25, cx - r * 0.55, 0, cx - r * 0.25, cx - r * 0.55, r * 0.55);
+  hl.addColorStop(0, 'rgba(255,255,255,0.22)'); hl.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = hl; g.fillRect(0, 0, size, size);
   g.restore();
-  g.strokeStyle = 'rgba(0,0,0,0.8)'; g.lineWidth = 3; g.beginPath(); g.arc(cx, cx, r, 0, Math.PI * 2); g.stroke();
-  g.strokeStyle = 'rgba(214,170,100,0.5)'; g.lineWidth = 1; g.beginPath(); g.arc(cx, cx, r + 3, 0, Math.PI * 2); g.stroke();
+  g.strokeStyle = 'rgba(0,0,0,0.9)'; g.lineWidth = 2.5; g.beginPath(); g.arc(cx, cx, r, 0, Math.PI * 2); g.stroke();
   return c;
 }
 
@@ -524,19 +538,24 @@ export function orbCanvas(kind, frac, size = 200) {
 export function drawMinimap(c, data) {
   const g = c.getContext('2d'), W = c.width, H = c.height;
   g.clearRect(0, 0, W, H);
-  g.fillStyle = 'rgba(11,13,16,0.82)'; g.fillRect(0, 0, W, H);
-  const sx = W / 30, ox = W / 2, oz = H * 0.5 + 1 * sx;
-  const P = (x, z) => [ox + x * sx, oz + z * sx];
-  const room = [[-4, -9], [4, -9], [4, -3.4], [8.6, -3.4], [8.6, -1.4], [11, -1.4], [11, 2.6], [8.6, 2.6], [8.6, 13], [-8.6, 13], [-8.6, 2.6], [-11, 2.6], [-11, -1.4], [-8.6, -1.4], [-8.6, -3.4], [-4, -3.4]];
+  g.fillStyle = 'rgba(8,9,11,0.88)'; g.fillRect(0, 0, W, H);
+  g.strokeStyle = '#6e5a36'; g.lineWidth = 1; g.strokeRect(5.5, 5.5, W - 11, H - 11);
+  g.fillStyle = '#a8864a';
+  for (const [x, y] of [[5, 5], [W - 5, 5], [5, H - 5], [W - 5, H - 5]]) { g.beginPath(); g.moveTo(x, y - 4); g.lineTo(x + 4, y); g.lineTo(x, y + 4); g.lineTo(x - 4, y); g.closePath(); g.fill(); }
+  const sx = W / 26, ox = W / 2, oz = H * 0.42;
+  const P = (x, z) => [ox + x * sx, oz + z * sx * 0.92];
+  const room = [[-3.2, -9], [3.2, -9], [3.2, -5.4], [5.6, -5.4], [5.6, -3.4], [8.6, -3.4], [8.6, -1.4], [11, -1.4], [11, 2.6], [8.6, 2.6], [8.6, 5], [4, 5], [4, 13.5], [-4, 13.5], [-4, 5], [-8.6, 5], [-8.6, 2.6], [-11, 2.6], [-11, -1.4], [-8.6, -1.4], [-8.6, -3.4], [-5.6, -3.4], [-5.6, -5.4], [-3.2, -5.4]];
   g.beginPath(); room.forEach(([x, z], k) => { const [px, py] = P(x, z); k ? g.lineTo(px, py) : g.moveTo(px, py); }); g.closePath();
-  g.fillStyle = '#2a2f35'; g.fill(); g.strokeStyle = '#8a8f94'; g.lineWidth = 2; g.stroke();
+  g.fillStyle = '#262a2f'; g.fill(); g.strokeStyle = '#9a9ea2'; g.lineWidth = 1.6; g.stroke();
+  g.strokeStyle = 'rgba(154,158,162,0.25)'; g.lineWidth = 1;
+  for (const [x0, z0, x1, z1] of [[-8.6, -1.4, 8.6, -1.4], [-8.6, 2.6, 8.6, 2.6], [-4, 5, 4, 5]]) { const [a, b] = P(x0, z0), [c2, d] = P(x1, z1); g.beginPath(); g.moveTo(a, b); g.lineTo(c2, d); g.stroke(); }
   g.fillStyle = '#3a4048'; for (const [x, z] of [[-7.9, -2.4], [7.9, -2.4], [-10.3, 5.3], [10.3, 5.3]]) { const [px, py] = P(x, z); g.fillRect(px - 3, py - 3, 6, 6); }
   const [axp, azp] = P(0, -6.9);
   g.fillStyle = '#D69A45'; g.beginPath(); g.moveTo(axp, azp - 6); g.lineTo(axp + 6, azp); g.lineTo(axp, azp + 6); g.lineTo(axp - 6, azp); g.closePath(); g.fill();
   g.fillStyle = '#d0302c';
   for (const e of data.enemies) { const [px, py] = P(e.x, e.z); g.beginPath(); g.arc(px, py, e.elite ? 4.5 : 3.5, 0, Math.PI * 2); g.fill(); }
   const [ppx, ppz] = P(data.player.x, data.player.z);
-  g.save(); g.translate(ppx, ppz); g.rotate(data.player.facing);
+  g.save(); g.translate(ppx, ppz); g.rotate(Math.PI - data.player.facing);
   g.fillStyle = '#f2efe6'; g.beginPath(); g.moveTo(0, -8); g.lineTo(6, 6); g.lineTo(0, 2); g.lineTo(-6, 6); g.closePath(); g.fill();
   g.restore();
 }
