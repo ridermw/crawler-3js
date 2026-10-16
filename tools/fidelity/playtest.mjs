@@ -97,7 +97,7 @@ while (Date.now() - t0 < 150000) {
   const dx = target.x - t.player.x, dz = target.z - t.player.z, d = Math.hypot(dx, dz);
   const scr = await page.evaluate(([x, z]) => window.__crawlerProject?.(x, z), [target.x, target.z]);
   if (scr) await page.mouse.move(scr.x, scr.y);
-  if (d > 1.7) await hold(dirKeys(dx / d, dz / d), 140);
+  if (d > 2.0) await hold(dirKeys(dx / d, dz / d), 140);
   else {
     const crowd = near.filter(e => e.d < 3).length;
     const order = crowd >= 2 ? ['4', '2', '1'] : ['2', '3', '1'];

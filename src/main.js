@@ -72,9 +72,9 @@ composer.addPass(new OutputPass());
 // ---------------------------------------------------------------- camera poses
 // pitch/yaw in degrees; height = vertical extent of the orthographic view in world units.
 const POSES = {
-  title: { target: new THREE.Vector3(0.0, -0.75, -0.9), yaw: 9, pitch: 29, height: 13.0, fov: 28, moon: 0.35, hemi: 0.8, candles: 0.8, shade: 0, sat: 0.75, gain: 0.92, lo: [0.86, 0.99, 1.22] },
-  settings: { target: new THREE.Vector3(-3.6, 2.25, -1.75), yaw: 4, pitch: 22.25, height: 13.5, fov: 2, moon: 2.1, hemi: 1.3, shade: 0.2, sat: 0.5, gain: 0.84, lo: [0.96, 0.99, 0.96] },
-  crypt: { target: new THREE.Vector3(0.15, -1.1, 2.2), yaw: 0, pitch: 38, height: 17.2, fov: 8, moon: 2.15, hemi: 1.3, pool: 5, sat: 0.7, shade: 0.05 },
+  title: { target: new THREE.Vector3(0, -1.25, 0.9), yaw: 9, pitch: 24.5, height: 14, fov: 24, moon: 0.35, hemi: 0.8, candles: 0.8, shade: 0, sat: 0.85, gain: 0.92, lo: [0.86, 0.99, 1.22], hi: [1.04, 1, 0.95] },
+  settings: { target: new THREE.Vector3(-3.6, 1.5, -1.75), yaw: 6, pitch: 19.25, height: 13, fov: 2, moon: 2.1, hemi: 1.3, shade: 0.2, sat: 0.5, gain: 0.84, lo: [0.96, 0.99, 0.96] },
+  crypt: { target: new THREE.Vector3(0.15, -1.1, 0.7), yaw: 0, pitch: 38, height: 17.2, fov: 2, moon: 2.15, hemi: 1.3, pool: 6, candles: 0.4, shade: 0.05, sat: 0.6, gain: 1, lo: [0.96, 0.99, 1.04], hi: [1, 1, 0.95] },
 };
 const cam = { target: POSES[START].target.clone(), yaw: POSES[START].yaw, pitch: POSES[START].pitch, height: POSES[START].height, fov: POSES[START].fov ?? 4 };
 let shake = 0;
@@ -263,6 +263,12 @@ function readMove() {
 // ---------------------------------------------------------------- loop
 const telemetry = window.__crawler = { ready: false, frozen: FREEZE, state: START };
 window.__crawlerProject = (x, z) => project(new THREE.Vector3(x, 0.5, z));
+// Inverse of the above for layout work: normalised 3:2-frame coords (u, v in 0..1) -> floor x, z at height y.
+window.__crawlerUnproject = (u, v, y = 0) => {
+  const fw = Math.min(innerWidth, innerHeight * 1.5), fx = (innerWidth - fw) / 2 + u * fw, fy = v * innerHeight;
+  const r = new THREE.Raycaster(); r.setFromCamera(new THREE.Vector2(fx / innerWidth * 2 - 1, -(fy / innerHeight) * 2 + 1), camera);
+  const h = new THREE.Vector3(); return r.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -y), h) ? [+h.x.toFixed(2), +h.z.toFixed(2)] : null;
+};
 // Tuning hook for tools/fidelity/search.mjs: adjust camera, grade and lights without a reload.
 window.__crawlerDebug = {
   pose: p => { if (p.target) cam.target.set(...p.target); for (const k of ['yaw', 'pitch', 'height', 'fov']) if (p[k] !== undefined) cam[k] = p[k]; },

@@ -41,7 +41,8 @@ function prep(geo, { pos = [0, 0, 0], rot = [0, 0, 0], scale = [1, 1, 1], uv = 0
 
 class Buckets {
   constructor() { this.m = new Map(); }
-  add(key, geo) { if (!this.m.has(key)) this.m.set(key, []); this.m.get(key).push(geo); }
+  // dz shifts everything added while it is set; the sanctum block is authored at z=0 and moved into place.
+  add(key, geo) { if (this.dz) geo.translate(0, 0, this.dz); if (!this.m.has(key)) this.m.set(key, []); this.m.get(key).push(geo); }
   build(parent, mats, { cast = true } = {}) {
     for (const [key, list] of this.m) {
       const mesh = new THREE.Mesh(mergeGeometries(list, false), mats[key]);
@@ -53,7 +54,7 @@ class Buckets {
 
 // Walkable footprint of the cruciform crypt (axis-aligned rectangles).
 const WALK = [
-  { x0: -8.6, x1: 8.6, z0: -5.0, z1: 11.5 },   // nave
+  { x0: -8.6, x1: 8.6, z0: -3.3, z1: 14.5 },   // nave
   { x0: -10.6, x1: 10.6, z0: -1.4, z1: 2.6 },  // side bays between the pedestals
 ];
 
@@ -67,12 +68,14 @@ export class World {
     this.candles = [];
     this.lights = [];
     this.anim = [];
-    this.grates = [[5.1, -1.6], [-5.6, 3.9], [3.2, 9.4]];
+    this.grates = [[5.1, 0.2], [-5.4, 5.5], [0.2, 14.6]];
     this.altar = new THREE.Vector3(0, 0.75, -6.55);
+    this.SANCTUM_DZ = 1.7;
     this.spawns = [[-6.4, -2.0], [9.8, 0.6], [-9.8, 0.6]];
     this.materials();
     this.floor();
-    this.sanctum();
+    this.b.dz = this.SANCTUM_DZ; this.sanctum(); this.b.dz = 0;
+    this.altar.z += this.SANCTUM_DZ;
     this.architecture();
     this.props();
     this.b.build(this.root, this.mats);
@@ -180,7 +183,7 @@ export class World {
     const n = Math.floor((yTop - yBottom) / 0.12);
     for (let k = 0; k <= n; k++) this.b.add('iron', prep(new THREE.TorusGeometry(0.07, 0.02, 4, 8), { pos: [x, yTop - k * 0.12, z], rot: [0, k % 2 ? Math.PI / 2 : 0, Math.PI / 2] }));
   }
-  candle(x, y, z, h, radius = 0.05) { this.candles.push({ x, y, z, h, r: radius }); }
+  candle(x, y, z, h, radius = 0.05) { this.candles.push({ x, y, z: z + (this.b.dz || 0), h, r: radius }); }
   candleCluster(x, y, z, n, spread, hmax = 0.4) {
     const r = this.r;
     for (let k = 0; k < n; k++) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * spread; this.candle(x + Math.cos(a) * d, y, z + Math.sin(a) * d, P.range(r, 0.1, hmax), P.range(r, 0.035, 0.06)); }
@@ -194,7 +197,7 @@ export class World {
     // Irregular flagstones: rows of slabs with varied widths; some slabs split across either
     // axis so the seams never settle into a regular brick bond.
     let z = -9.4;
-    while (z < 13.5) {
+    while (z < 18) {
       const d = P.range(r, 0.85, 1.35);
       let x = -15 + r() * 0.9;
       while (x < 15) {
@@ -273,7 +276,7 @@ export class World {
       this.slab(0.34, 1.9, 0.34, px, 2.05, pz, { tint: 1.0 });
       this.b.add('stone', prep(new THREE.ConeGeometry(0.3, 0.9, 4), { pos: [px, 3.45, pz], rot: [0, Math.PI / 4, 0], uv: 1.5 }));
       this.candleCluster(px, 0.75, pz + 0.45, 3, 0.2, 0.3);
-      this.obstacles.push({ x: px, z: pz, r: 0.45 });
+      this.obstacles.push({ x: px, z: pz + (this.b.dz || 0), r: 0.45 });
     }
     // candles: altar top, steps and dais
     for (let k = 0; k < 14; k++) this.candle(A.x - 1.4 + (k % 7) * 0.46 + (r() - 0.5) * 0.1, ay + 1.38, A.z - 0.75 + Math.floor(k / 7) * 0.95 + (r() - 0.5) * 0.12, P.range(r, 0.15, 0.42), 0.05);
@@ -313,12 +316,12 @@ export class World {
       this.b.add('relief', prep(new THREE.PlaneGeometry(size * 0.8, ph), { pos: [x + nx * (size / 2 + 0.012), 1.0 + ph / 2, z + nz * (size / 2 + 0.012)], rot: [0, a, 0] }));
     }
     if (banner >= 0) this.banner(x, Math.min(top - 0.2, 6.2), z + size / 2 + 0.06, banner);
-    this.obstacles.push({ x, z, r: size * 0.75 + 0.2 });
+    this.obstacles.push({ x, z: z + (this.b.dz || 0), r: size * 0.75 + 0.2 });
   }
   banner(x, yTop, z, variant, w = 1.0, h = 2.6) {
     const mat = new THREE.MeshStandardMaterial({ map: variant ? this.tex.banner1 : this.tex.banner0, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.95 });
     const geo = new THREE.PlaneGeometry(w, h, 4, 8); geo.translate(0, -h / 2, 0);
-    const m = new THREE.Mesh(geo, mat); m.position.set(x, yTop, z); m.castShadow = true;
+    const m = new THREE.Mesh(geo, mat); m.position.set(x, yTop, z + (this.b.dz || 0)); m.castShadow = true;
     m.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: mat.map, alphaTest: 0.5 });
     this.root.add(m);
     this.slab(w + 0.25, 0.06, 0.06, x, yTop + 0.03, z, { key: 'iron', bevel: 0 });
@@ -340,7 +343,7 @@ export class World {
   window(x, y, z, w, h, ry = 0) {
     const mat = new THREE.MeshBasicMaterial({ map: this.tex.lancet, transparent: true, toneMapped: true, color: '#6f7d88' });
     const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
-    m.position.set(x, y, z); m.rotation.y = ry; this.root.add(m);
+    m.position.set(x, y, z + (this.b.dz || 0)); m.rotation.y = ry; this.root.add(m);
     // stone jamb and pointed hood
     const c = Math.cos(ry), s = Math.sin(ry);
     for (const side of [-1, 1]) this.slab(0.18, h * 0.75, 0.3, x + c * side * (w / 2 + 0.06), y - h * 0.12, z - s * side * (w / 2 + 0.06), { ry, tint: 1.05 });
@@ -368,6 +371,7 @@ export class World {
     this.obstacles.push({ x, z, r: size * 0.62 });
   }
   architecture() {
+    this.b.dz = this.SANCTUM_DZ;
     // sanctum walls behind the altar with moonlit lancet windows
     this.wall(-4.6, -9.1, 4.6, -9.1, 7.5, { thick: 0.8, broken: 0.25, gapsAt: [[1.6, 3.0, 2.6, 6.4], [6.2, 7.6, 2.6, 6.4], [3.9, 5.3, 3.4, 7.5]] });
     this.window(-2.3, 4.4, -9.08, 1.25, 3.4); this.window(2.3, 4.4, -9.08, 1.25, 3.4); this.window(0, 5.3, -9.08, 1.25, 3.6);
@@ -381,26 +385,28 @@ export class World {
     // tall banner pillars flanking the sanctum
     this.pillar(-4.6, -6.3, 8.5, { banner: 0 });
     this.pillar(4.6, -6.3, 8.5, { banner: 1 });
+    this.chain(-4.6, 7.6, -5.65, 0, 6.8, -5.9, 1.2); this.chain(4.6, 7.6, -5.65, 0, 6.8, -5.9, 1.2);
+    this.b.dz = 0;
     // pedestals: upper pair beside the sanctum mouth, lower pair on the flanks
-    this.pedestal(-8.0, -3.2); this.pedestal(8.0, -3.2);
-    this.pedestal(-10.3, 4.4, { broken: true }); this.pedestal(10.3, 4.4, { broken: true });
+    this.pedestal(-7.9, -2.4); this.pedestal(7.9, -2.4);
+    this.pedestal(-10.3, 5.3, { broken: true }); this.pedestal(10.3, 5.3, { broken: true });
     // stepped walls running between the pedestals, and low ruined walls at the outer edges
     for (const s of [-1, 1]) {
-      this.wall(s * 9.0, -1.6, s * 9.8, 2.9, 1.2, { thick: 0.9, broken: 0.5 });
-      this.wall(s * 11.0, 6.2, s * 11.6, 14, 1.8, { thick: 0.9, broken: 0.6 });
+      this.wall(s * 9.2, -0.8, s * 10.0, 3.8, 1.2, { thick: 0.9, broken: 0.5 });
+      this.wall(s * 11.2, 7.2, s * 10.0, 17, 1.8, { thick: 0.9, broken: 0.6 });
       this.wall(s * 10.4, -7.6, s * 12.6, -3.6, 3.0, { thick: 0.8, broken: 0.6 });
-      this.stepped(s * 9.8, 8.6, 1.6, 1.4, s);
+      this.stepped(s * 9.4, 10.6, 1.8, 1.6, s);
       this.bones(s * 10.9, 0.9, 0.6, 8, 2);
       this.candleCluster(s * 11.6, 0, -1.8, 6, 0.4, 0.45);
     }
     // hanging chains between the tall pillars and from the vault
-    this.chain(-4.6, 7.6, -5.65, 0, 6.8, -5.9, 1.2); this.chain(4.6, 7.6, -5.65, 0, 6.8, -5.9, 1.2);
     for (const [x, z, y0, y1] of [[-6.4, -6.8, 11, 4.6], [6.6, -6.6, 11, 5.4], [-2.6, -7.0, 11, 7.0], [11.2, -2.5, 12, 6.2], [-11.4, -2.0, 12, 5.8]]) this.hangingChain(x, z, y0, y1);
   }
 
   // ------------------------------------------------------------ props
   props() {
     const r = this.r;
+    this.b.dz = this.SANCTUM_DZ;
     // fallen fluted column against the right rear wall
     this.b.add('stone', prep(new THREE.CylinderGeometry(0.42, 0.45, 3.4, 12, 3), { pos: [7.0, 0.45, -6.6], rot: [0, 0.35, Math.PI / 2 - 0.12], uv: 1.6, tint: 0.95 }));
     this.slab(1.1, 0.4, 1.1, 8.6, 0.2, -7.0, { ry: 0.3, tint: 0.9 });
@@ -412,7 +418,8 @@ export class World {
     for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; this.b.add('iron', prep(new THREE.CylinderGeometry(0.02, 0.02, 1.0, 4), { pos: [bx + Math.cos(a) * 0.42, by, bz + Math.sin(a) * 0.42] })); }
     this.b.add('iron', prep(new THREE.ConeGeometry(0.44, 0.4, 10, 1, true), { pos: [bx, by + 0.65, bz] }));
     this.b.add('glow', prep(new THREE.IcosahedronGeometry(0.18, 1), { pos: [bx, by - 0.3, bz], tint: [1, 0.55, 0.2] }));
-    this.brazier = new THREE.Vector3(bx, by - 0.2, bz);
+    this.brazier = new THREE.Vector3(bx, by - 0.2, bz + this.SANCTUM_DZ);
+    this.b.dz = 0;
     // iron candle stands
     for (const [x, z] of [[-6.6, 6.0], [7.0, 5.0], [-6.2, -5.2], [6.2, -5.2]]) {
       this.b.add('iron', prep(new THREE.CylinderGeometry(0.04, 0.06, 1.1, 6), { pos: [x, 0.55, z] }));
@@ -458,8 +465,9 @@ export class World {
     this.scene.add(moon, moon.target); this.moon = moon;
     this.hemi = new THREE.HemisphereLight('#727c86', '#1e1d1c', 1.5); this.scene.add(this.hemi);
     const warm = (x, y, z, i, d = 8, col = '#D69A45') => { const l = new THREE.PointLight(col, i, d, 1.5); l.position.set(x, y, z); l.userData.base = i; this.scene.add(l); this.lights.push(l); return l; };
-    warm(0, 2.6, -5.6, 13, 9); warm(-2.4, 1.5, -6.6, 9, 6); warm(2.4, 1.5, -6.6, 9, 6);
-    warm(-8.5, 1.4, -5.2, 6, 5); warm(8.5, 1.4, -5.2, 6, 5);
+    const S = this.SANCTUM_DZ;
+    warm(0, 2.6, -5.6 + S, 13, 9); warm(-2.4, 1.5, -6.6 + S, 9, 6); warm(2.4, 1.5, -6.6 + S, 9, 6);
+    warm(-7.4, 1.4, -7.2 + S, 6, 5); warm(7.4, 1.4, -7.2 + S, 6, 5);
     warm(-10.4, 1.2, -2.4, 5, 5); warm(10.4, 1.2, -2.4, 5, 5);
     warm(this.brazier.x, this.brazier.y, this.brazier.z, 7, 6, '#e07a30');
     // moonlight pooling on the central floor through the broken roof

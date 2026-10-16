@@ -527,11 +527,11 @@ export function drawMinimap(c, data) {
   g.fillStyle = 'rgba(11,13,16,0.82)'; g.fillRect(0, 0, W, H);
   const sx = W / 30, ox = W / 2, oz = H * 0.5 + 1 * sx;
   const P = (x, z) => [ox + x * sx, oz + z * sx];
-  const room = [[-5, -11], [5, -11], [5, -6], [7, -6], [7, -3], [11, -3], [11, 3], [7, 3], [7, 6], [4, 6], [4, 10], [-4, 10], [-4, 6], [-7, 6], [-7, 3], [-11, 3], [-11, -3], [-7, -3], [-7, -6], [-5, -6]];
+  const room = [[-4, -9], [4, -9], [4, -3.4], [8.6, -3.4], [8.6, -1.4], [11, -1.4], [11, 2.6], [8.6, 2.6], [8.6, 13], [-8.6, 13], [-8.6, 2.6], [-11, 2.6], [-11, -1.4], [-8.6, -1.4], [-8.6, -3.4], [-4, -3.4]];
   g.beginPath(); room.forEach(([x, z], k) => { const [px, py] = P(x, z); k ? g.lineTo(px, py) : g.moveTo(px, py); }); g.closePath();
   g.fillStyle = '#2a2f35'; g.fill(); g.strokeStyle = '#8a8f94'; g.lineWidth = 2; g.stroke();
-  g.fillStyle = '#3a4048'; for (const [x, z] of [[-4.5, -3.5], [4.5, -3.5], [-6, 2.5], [6, 2.5]]) { const [px, py] = P(x, z); g.fillRect(px - 3, py - 3, 6, 6); }
-  const [axp, azp] = P(0, -8.6);
+  g.fillStyle = '#3a4048'; for (const [x, z] of [[-7.9, -2.4], [7.9, -2.4], [-10.3, 5.3], [10.3, 5.3]]) { const [px, py] = P(x, z); g.fillRect(px - 3, py - 3, 6, 6); }
+  const [axp, azp] = P(0, -6.9);
   g.fillStyle = '#D69A45'; g.beginPath(); g.moveTo(axp, azp - 6); g.lineTo(axp + 6, azp); g.lineTo(axp, azp + 6); g.lineTo(axp - 6, azp); g.closePath(); g.fill();
   g.fillStyle = '#d0302c';
   for (const e of data.enemies) { const [px, py] = P(e.x, e.z); g.beginPath(); g.arc(px, py, e.elite ? 4.5 : 3.5, 0, Math.PI * 2); g.fill(); }

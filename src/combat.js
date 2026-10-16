@@ -12,7 +12,9 @@ export const ABILITIES = [
 ];
 const MAX_HP = 100, MAX_ES = 75, WARDEN_HP = 400, THRALL_HP = 60;
 // Characters are authored at human scale; the crypt reads at a slightly heroic scale.
-const ACTOR_SCALE = 1.3;
+const ACTOR_SCALE = 1.6;
+// Reach and body radii were balanced at scale 1.3; R keeps them proportional to the models.
+const R = ACTOR_SCALE / 1.3;
 
 // ---------------------------------------------------------------- materials
 let M = null;
@@ -214,7 +216,7 @@ class Actor {
   constructor(J, kind, hp, scene) {
     this.J = J; this.kind = kind; this.hp = this.maxHp = hp; this.pos = J.root.position; this.facing = 0;
     this.anim = 'idle'; this.animT = 0; this.walk = 0; this.walkAmt = 0; this.stun = 0; this.hitT = 0; this.cd = 0; this.dead = false; this.deadT = 0;
-    this.vel = new THREE.Vector3(); this.radius = kind === 'warden' ? 0.6 : 0.4;
+    this.vel = new THREE.Vector3(); this.radius = (kind === 'warden' ? 0.6 : 0.4) * R;
     J.root.scale.setScalar(ACTOR_SCALE); scene.add(J.root);
   }
   face(dx, dz, k = 1) { const target = Math.atan2(dx, dz); let d = target - this.facing; d = Math.atan2(Math.sin(d), Math.cos(d)); this.facing += d * k; }
@@ -247,10 +249,10 @@ export class Combat {
     this.wardRing.rotation.x = -Math.PI / 2; this.wardRing.visible = false;
     this.wardLight = new THREE.PointLight('#e0a050', 0, 6, 1.5); this.group.add(this.wardLight);
     this.rune = add(new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.0), new THREE.MeshBasicMaterial({ map: this.tex.rune, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, color: '#ff5040' })));
-    this.rune.rotation.x = -Math.PI / 2;
+    this.rune.rotation.x = -Math.PI / 2; this.rune.scale.setScalar(ACTOR_SCALE);
     this.staffLight = new THREE.PointLight('#ff3020', 4, 5, 1.6); this.group.add(this.staffLight);
     this.staffGlow = add(new THREE.Sprite(new THREE.SpriteMaterial({ map: this.tex.disc, color: '#ff4030', blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, opacity: 0.9 })));
-    this.staffGlow.scale.setScalar(0.7);
+    this.staffGlow.scale.setScalar(0.7 * ACTOR_SCALE);
     this.knightLight = new THREE.PointLight('#c8d0d8', 9, 7, 1.3); this.group.add(this.knightLight);
   }
 
@@ -272,35 +274,35 @@ export class Combat {
     k.dead = false; k.anim = 'idle'; k.animT = 0; k.stun = 0;
     this.cooldowns = Object.fromEntries(ABILITIES.map(a => [a.key, 0]));
     this.selected = '1'; this.ward = 0; this.dest = null; this.lunge = null; this.outcome = null; this.lootShown = false; this.killCount = 0;
-    this.warden = this.spawnEnemy('warden', -1.3, -3.6);
+    this.warden = this.spawnEnemy('warden', snapshot ? -3.4 : -1.3, snapshot ? -1.2 : -2.2);
     if (snapshot) {
-      k.pos.set(-0.05, 0, 1.0); k.facing = 1.95; k.hp = 82; this.essence = 46;
-      this.warden.hp = Math.round(WARDEN_HP * 0.63); this.warden.facing = 0.5; this.warden.play('cast'); this.warden.animT = 0.45;
-      const t1 = this.spawnEnemy('thrall', 2.35, 1.25, 11); t1.facing = -1.6; t1.play('recoil'); t1.animT = 0.08; t1.hp = 22; this.target = t1;
-      const t2 = this.spawnEnemy('thrall', -4.3, -2.3, 12); t2.facing = 2.3; t2.walk = 1.3; t2.walkAmt = 1;
-      const t3 = this.spawnEnemy('thrall', 2.7, -4.3, 13); t3.facing = -2.6;
+      k.pos.set(-0.45, 0, 6.4); k.facing = 1.93; k.hp = 82; this.essence = 46;
+      this.warden.hp = Math.round(WARDEN_HP * 0.63); this.warden.facing = 0.37; this.warden.play('cast'); this.warden.animT = 0.45;
+      const t1 = this.spawnEnemy('thrall', 2.4, 5.4, 11); t1.facing = -1.9; t1.play('recoil'); t1.animT = 0.08; t1.hp = 22; this.target = t1;
+      const t2 = this.spawnEnemy('thrall', -6.4, -0.1, 12); t2.facing = 0.74; t2.walk = 1.3; t2.walkAmt = 1;
+      const t3 = this.spawnEnemy('thrall', 4.2, -2.0, 13); t3.facing = -0.5;
       k.play('slash'); k.animT = 0.3; this.arcT = 0.12; this.arcFacing = k.facing;
       this.cooldowns['2'] = ABILITIES[1].cd * 0.42; this.cooldowns['3'] = ABILITIES[2].cd * 0.62;
-      this.dest = new THREE.Vector3(1.05, 0, 3.05);
+      this.dest = new THREE.Vector3(0.7, 0, 9.0);
       this.snapshotFx(t1);
       this.lootShown = true;
     } else {
-      k.pos.set(0, 0, 4.5); k.facing = Math.PI; k.hp = MAX_HP; this.essence = MAX_ES;
-      this.spawnEnemy('thrall', 2.6, -1.0, 11); this.spawnEnemy('thrall', -4.3, -2.3, 12); this.spawnEnemy('thrall', 2.7, -4.3, 13);
+      k.pos.set(0, 0, 7.5); k.facing = Math.PI; k.hp = MAX_HP; this.essence = MAX_ES;
+      this.spawnEnemy('thrall', 2.6, -1.0, 11); this.spawnEnemy('thrall', -4.3, -2.3, 12); this.spawnEnemy('thrall', 2.8, -2.8, 13);
       this.target = null; this.arcT = 0;
     }
     this.active = true;
   }
 
   snapshotFx(t) {
-    const hit = new THREE.Vector3(t.pos.x - 0.15, 1.15, t.pos.z + 0.05);
+    const hit = new THREE.Vector3(t.pos.x - 0.15 * R, 1.15 * ACTOR_SCALE, t.pos.z + 0.05);
     this.addParticle({ tex: this.tex.spark, color: '#fff0c8', pos: hit, size: 0.75, life: 1e9, additive: true });
     this.addParticle({ tex: this.tex.disc, color: '#ff8050', pos: hit.clone().add(new THREE.Vector3(0.05, 0.05, 0)), size: 0.5, life: 1e9, additive: true });
     for (let k = 0; k < 7; k++) {
       const a = k / 7 * Math.PI * 2;
       this.addParticle({ tex: this.tex.disc, color: '#7a6a58', pos: new THREE.Vector3(t.pos.x + 0.3 + Math.cos(a) * 0.45, 0.2 + (k % 3) * 0.08, t.pos.z + Math.sin(a) * 0.35), size: 0.6 + (k % 3) * 0.15, life: 1e9, opacity: 0.28 });
     }
-    this.hooks.number?.(new THREE.Vector3(t.pos.x + 0.05, 2.15, t.pos.z), '18', true);
+    this.hooks.number?.(new THREE.Vector3(t.pos.x + 0.05, 2.15 * ACTOR_SCALE, t.pos.z), '18', true);
   }
 
   addParticle({ tex, color, pos, vel = null, size = 0.3, grow = 0, life = 0.5, additive = false, opacity = 1, gravity = 0 }) {
@@ -321,10 +323,10 @@ export class Combat {
     this.dest = null;
     if (a.id === 'cleave') {
       k.play('slash'); this.arcT = 0.32; this.arcFacing = k.facing; this.hooks.sfx?.('swing');
-      this.pendingHit = { t: 0.12, fn: () => this.hitCone(2.5, 1.25, 16, 22, 0.8, 0.25) };
+      this.pendingHit = { t: 0.12, fn: () => this.hitCone(2.5 * R, 1.25, 16, 22, 0.8, 0.25) };
     } else if (a.id === 'bash') {
       k.play('bash'); this.hooks.sfx?.('bash');
-      this.pendingHit = { t: 0.12, fn: () => { this.hitCone(2.0, 0.9, 10, 14, 1.8, 1.6); this.ring(k.pos.clone().add(new THREE.Vector3(fx * 0.8, 0.05, fz * 0.8)), '#d8c8a0', 0.5, 2.4); } };
+      this.pendingHit = { t: 0.12, fn: () => { this.hitCone(2.0 * R, 0.9, 10, 14, 1.8, 1.6); this.ring(k.pos.clone().add(new THREE.Vector3(fx * 0.8, 0.05, fz * 0.8)), '#d8c8a0', 0.5, 2.4); } };
     } else if (a.id === 'lunge') {
       k.play('lunge'); this.hooks.sfx?.('lunge');
       const from = k.pos.clone(), to = from.clone().add(new THREE.Vector3(fx * 5, 0, fz * 5));
@@ -403,9 +405,9 @@ export class Combat {
     this.arc.visible = this.arcT > 0;
     if (this.arc.visible) {
       const s = 1 - this.arcT / 0.32;
-      this.arc.position.set(k.pos.x, 1.05, k.pos.z); this.arc.rotation.set(0, this.arcFacing, 0); this.arc.rotateX(-0.22);
+      this.arc.position.set(k.pos.x, 1.05 * ACTOR_SCALE, k.pos.z); this.arc.rotation.set(0, this.arcFacing, 0); this.arc.rotateX(-0.22);
       this.arc.material.opacity = Math.min(1, this.arcT / 0.12);
-      this.arc.scale.setScalar(0.9 + s * 0.1);
+      this.arc.scale.setScalar((0.9 + s * 0.1) * ACTOR_SCALE);
     }
     this.marker.visible = this.markerFlame.visible = !!this.dest;
     if (this.dest) {
@@ -471,7 +473,7 @@ export class Combat {
       const sp = 4.2 * dt; k.pos.x += mx / len * sp; k.pos.z += mz / len * sp; k.face(mx, mz, 1 - Math.exp(-dt * 14));
       k.walk += dt * 9; k.walkAmt = Math.min(1, k.walkAmt + dt * 6);
     } else k.walkAmt = Math.max(0, k.walkAmt - dt * 6);
-    this.world.resolve(k.pos, 0.4, prev);
+    this.world.resolve(k.pos, 0.4 * R, prev);
     // abilities
     if (input.cast) this.cast(input.cast, input.aim);
     // enemies
@@ -486,9 +488,9 @@ export class Combat {
       else {
         e.face(dx, dz, 1 - Math.exp(-dt * 8));
         if (e.anim === 'attack') {
-          if (e.animT > 0.45 && !e.struck) { e.struck = true; if (d < 1.6) { this.hurtPlayer(7 + Math.floor(this.r() * 4)); this.hooks.sfx?.('clang'); } }
+          if (e.animT > 0.45 && !e.struck) { e.struck = true; if (d < 1.6 * R) { this.hurtPlayer(7 + Math.floor(this.r() * 4)); this.hooks.sfx?.('clang'); } }
           if (e.animT > 0.8) e.play('idle');
-        } else if (d > 1.25) {
+        } else if (d > 1.25 * R) {
           const sp = 2.6 * dt; e.pos.x += dx / d * sp; e.pos.z += dz / d * sp; e.walk += dt * 8; e.walkAmt = Math.min(1, e.walkAmt + dt * 5);
         } else {
           e.walkAmt = Math.max(0, e.walkAmt - dt * 5);
@@ -497,7 +499,7 @@ export class Combat {
       }
       // separation
       for (const o of alive) if (o !== e) { const sx = e.pos.x - o.pos.x, sz = e.pos.z - o.pos.z, sd = Math.hypot(sx, sz), min = e.radius + o.radius; if (sd < min && sd > 1e-3) { e.pos.x += sx / sd * (min - sd) * 0.5; e.pos.z += sz / sd * (min - sd) * 0.5; } }
-      const kd = Math.hypot(e.pos.x - k.pos.x, e.pos.z - k.pos.z), kmin = e.radius + 0.4;
+      const kd = Math.hypot(e.pos.x - k.pos.x, e.pos.z - k.pos.z), kmin = e.radius + 0.4 * R;
       if (kd < kmin && kd > 1e-3) { e.pos.x = k.pos.x + (e.pos.x - k.pos.x) / kd * kmin; e.pos.z = k.pos.z + (e.pos.z - k.pos.z) / kd * kmin; }
       this.world.resolve(e.pos, e.radius, eprev);
     }
