@@ -415,19 +415,27 @@ export function titleLockup(scale = 1) {
   return c;
 }
 
-// Thin tarnished-brass rule with a centred diamond.
+// Tarnished-brass rule with bead ornaments and a centred double diamond with filigree.
 export function dividerCanvas(w, h = 18, { diamond = true, ends = true } = {}) {
-  const { c, g } = makeCanvas(w, h), cy = h / 2, cx = w / 2;
-  g.strokeStyle = '#8A6A35'; g.lineWidth = 1;
-  g.beginPath(); g.moveTo(0, cy + 0.5); g.lineTo(w, cy + 0.5); g.stroke();
-  g.strokeStyle = '#a8864a';
-  if (ends) for (const x of [w * 0.28, w * 0.72]) { g.fillStyle = '#a8864a'; g.fillRect(x - 1.5, cy - 1, 3, 3); }
+  const { c, g } = makeCanvas(w, h), cy = h / 2, cx = w / 2, d = h * 0.42;
+  const line = g.createLinearGradient(0, 0, w, 0);
+  line.addColorStop(0, 'rgba(176,136,70,0)'); line.addColorStop(0.15, 'rgba(176,136,70,0.9)'); line.addColorStop(0.85, 'rgba(176,136,70,0.9)'); line.addColorStop(1, 'rgba(176,136,70,0)');
+  g.fillStyle = line; g.fillRect(0, cy - Math.max(1, h * 0.04), w, Math.max(1.5, h * 0.08));
+  if (ends) for (const x of [w * 0.3, w * 0.7]) { g.fillStyle = '#c9a463'; g.beginPath(); g.ellipse(x, cy, h * 0.11, h * 0.07, 0, 0, Math.PI * 2); g.fill(); }
   if (diamond) {
-    g.fillStyle = '#0B0D10'; g.strokeStyle = '#c29a55'; g.lineWidth = 1.2;
-    const d = h * 0.42;
-    g.beginPath(); g.moveTo(cx, cy - d); g.lineTo(cx + d, cy); g.lineTo(cx, cy + d); g.lineTo(cx - d, cy); g.closePath(); g.fill(); g.stroke();
-    g.fillStyle = '#c29a55'; g.beginPath(); g.moveTo(cx, cy - d * 0.45); g.lineTo(cx + d * 0.45, cy); g.lineTo(cx, cy + d * 0.45); g.lineTo(cx - d * 0.45, cy); g.closePath(); g.fill();
-    for (const s of [-1, 1]) { g.beginPath(); g.moveTo(cx + s * d * 1.4, cy - 2.5); g.lineTo(cx + s * d * 1.9, cy + 0.5); g.lineTo(cx + s * d * 1.4, cy + 3.5); g.lineTo(cx + s * d * 0.9, cy + 0.5); g.closePath(); g.fill(); }
+    const glow = g.createRadialGradient(cx, cy, 0, cx, cy, d * 2.6); glow.addColorStop(0, 'rgba(214,154,69,0.35)'); glow.addColorStop(1, 'rgba(214,154,69,0)');
+    g.fillStyle = glow; g.fillRect(cx - d * 3, 0, d * 6, h);
+    const dia = (k, fill, stroke, lw) => { g.beginPath(); g.moveTo(cx, cy - d * k); g.lineTo(cx + d * k * 1.15, cy); g.lineTo(cx, cy + d * k); g.lineTo(cx - d * k * 1.15, cy); g.closePath(); if (fill) { g.fillStyle = fill; g.fill(); } if (stroke) { g.strokeStyle = stroke; g.lineWidth = lw; g.stroke(); } };
+    // filigree wings
+    g.strokeStyle = '#c9a463'; g.lineWidth = Math.max(1, h * 0.06);
+    for (const s of [-1, 1]) {
+      g.beginPath(); g.moveTo(cx + s * d * 1.1, cy); g.quadraticCurveTo(cx + s * d * 1.7, cy - d * 0.75, cx + s * d * 2.3, cy - d * 0.15); g.stroke();
+      g.beginPath(); g.moveTo(cx + s * d * 1.1, cy); g.quadraticCurveTo(cx + s * d * 1.7, cy + d * 0.75, cx + s * d * 2.3, cy + d * 0.15); g.stroke();
+      g.fillStyle = '#d8b673'; g.beginPath(); g.moveTo(cx + s * d * 2.3, cy - d * 0.25); g.lineTo(cx + s * d * 2.75, cy); g.lineTo(cx + s * d * 2.3, cy + d * 0.25); g.closePath(); g.fill();
+    }
+    dia(1.0, '#0B0D10', '#d8b673', Math.max(1.2, h * 0.07));
+    dia(0.62, null, '#a88544', Math.max(1, h * 0.04));
+    dia(0.3, '#e0bd78', null, 0);
   }
   return c;
 }
