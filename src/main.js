@@ -1,0 +1,231 @@
+// The Ashen Reliquary — entry point: renderer, post-processing, camera poses, input, state machine,
+// URL query harness (?state=, ?freeze=, ?frame=) and window.__crawler telemetry.
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { World } from './world.js';
+import { Combat, ABILITIES } from './combat.js';
+import { UI } from './ui.js';
+import { initAudio, sfx, setVolumes, updateAudio } from './audio.js';
+
+const Q = new URLSearchParams(location.search);
+const FREEZE = Q.get('freeze') === '1';
+const START = ['title', 'settings', 'crypt'].includes(Q.get('state')) ? Q.get('state') : 'title';
+if (Q.get('frame') === 'ref') document.body.classList.add('frame-ref');
+const FROZEN_TIME = 1.7;
+
+// ---------------------------------------------------------------- renderer & post
+const canvas = document.getElementById('game');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', preserveDrawingBuffer: FREEZE });
+renderer.setPixelRatio(FREEZE ? 1 : Math.min(window.devicePixelRatio, 1.5));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#07090c');
+scene.fog = new THREE.FogExp2('#0e1318', 0.012);
+const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.5, 140);
+
+const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
+const composer = new EffectComposer(renderer, rt);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(512, 512), 0.45, 0.5, 0.9);
+composer.addPass(bloom);
+// Cold-blue shadow / warm-amber highlight split-toning, vignette and screen dimming (linear HDR).
+const CryptGrade = {
+  uniforms: { tDiffuse: { value: null }, uVig: { value: 1 }, uDim: { value: 1 }, uAspect: { value: 16 / 9 } },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uVig, uDim, uAspect; varying vec2 vUv;
+  void main(){
+    vec4 c = texture2D(tDiffuse, vUv);
+    float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722));
+    float hw = smoothstep(0.02, 0.5, l);
+    c.rgb *= mix(vec3(0.86, 0.95, 1.12), vec3(1.08, 0.99, 0.86), hw);
+    c.rgb = mix(vec3(l), c.rgb, 0.9);
+    vec2 d = (vUv - 0.5) * vec2(uAspect / 1.5, 1.0);
+    float v = smoothstep(0.95, 0.3, length(d));
+    c.rgb *= mix(1.0, mix(0.32, 1.0, v), uVig);
+    c.rgb *= uDim;
+    gl_FragColor = c;
+  }`,
+};
+const grade = new ShaderPass(CryptGrade); composer.addPass(grade);
+composer.addPass(new OutputPass());
+
+// ---------------------------------------------------------------- camera poses
+// pitch/yaw in degrees; height = vertical extent of the orthographic view in world units.
+const POSES = {
+  title: { target: new THREE.Vector3(0.9, 1.0, -5.0), yaw: 32, pitch: 35, height: 10.2 },
+  settings: { target: new THREE.Vector3(-1.9, 2.0, -5.6), yaw: 8, pitch: 26, height: 9.6 },
+  crypt: { target: new THREE.Vector3(0, 0.9, 1.0), yaw: 0, pitch: 35, height: 13.2 },
+};
+const cam = { target: POSES[START].target.clone(), yaw: POSES[START].yaw, pitch: POSES[START].pitch, height: POSES[START].height };
+let shake = 0;
+function placeCamera(t) {
+  let yaw = cam.yaw, pitch = cam.pitch;
+  if (settingsLive.cameraDrift && !FREEZE) { yaw += Math.sin(t * 0.11) * (state === 'crypt' ? 0.4 : 1.6); pitch += Math.sin(t * 0.07) * 0.5; }
+  const y = THREE.MathUtils.degToRad(yaw), p = THREE.MathUtils.degToRad(pitch), D = 60;
+  camera.position.set(cam.target.x + Math.sin(y) * Math.cos(p) * D, cam.target.y + Math.sin(p) * D, cam.target.z + Math.cos(y) * Math.cos(p) * D);
+  if (shake > 0) { camera.position.x += (rand() - 0.5) * shake; camera.position.y += (rand() - 0.5) * shake; }
+  camera.lookAt(cam.target);
+  const aspect = innerWidth / innerHeight, h = cam.height / 2;
+  camera.left = -h * aspect; camera.right = h * aspect; camera.top = h; camera.bottom = -h;
+  camera.updateProjectionMatrix();
+}
+let rs = 0x9e3779b9; const rand = () => { rs ^= rs << 13; rs >>>= 0; rs ^= rs >>> 17; rs ^= rs << 5; rs >>>= 0; return rs / 4294967296; };
+
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false); composer.setSize(w, h);
+  grade.uniforms.uAspect.value = w / h;
+}
+addEventListener('resize', resize);
+
+// ---------------------------------------------------------------- world, combat, ui
+const world = new World(scene);
+const project = (() => { const v = new THREE.Vector3(); return p => { v.copy(p).project(camera); return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight }; }; })();
+let settingsLive;
+const app = {
+  go: s => go(s),
+  castFromUI: key => { if (state === 'crypt') queueCast(key); },
+  previewSettings: s => applyLive(s),
+  commitSettings: s => { applyLive(s); applyWindowMode(s.windowMode); },
+};
+const ui = new UI(app, { frozen: FREEZE });
+const combat = new Combat(scene, world, {
+  sfx: name => sfx[name]?.(),
+  shake: a => { if (!FREEZE) shake = Math.max(shake, a); },
+  number: (pos, text, isDamage, color) => ui.number(pos, text, color),
+  event: e => {
+    if (e === 'loot') ui.loot(true);
+    if (e === 'victory') { sfx.victory(); ui.banner('THE WARDEN IS DESTROYED', 'ENTER  DESCEND AGAIN      ESC  TITLE'); }
+    if (e === 'defeat') { sfx.defeat(); ui.banner('YOU HAVE FALLEN', 'ENTER  RISE AGAIN      ESC  TITLE'); }
+  },
+});
+combat.setVisible(false);
+
+function applyLive(s) {
+  settingsLive = { ...s };
+  grade.uniforms.uVig.value = s.vignette ? 1 : 0;
+  setVolumes(s.master / 100, s.ambient / 100);
+}
+function applyWindowMode(mode) {
+  try {
+    if (mode === 'borderless' && !document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    if (mode === 'windowed' && document.fullscreenElement) document.exitFullscreen?.();
+  } catch { /* fullscreen not permitted */ }
+}
+applyLive(ui.settings);
+
+// ---------------------------------------------------------------- state machine
+let state = null;
+function go(next) {
+  const prev = state; state = next;
+  ui.show(next);
+  if (next === 'crypt') {
+    combat.reset(FREEZE); combat.setVisible(true);
+    ui.loot(FREEZE); ui.banner(null);
+  } else if (next !== 'quit') {
+    combat.setVisible(false); combat.active = false; ui.loot(false); ui.banner(null);
+  }
+  grade.uniforms.uDim.value = next === 'settings' ? 0.78 : 1;
+  if (!prev || FREEZE) { const p = POSES[next] || POSES.title; cam.target.copy(p.target); cam.yaw = p.yaw; cam.pitch = p.pitch; cam.height = p.height; }
+}
+
+// ---------------------------------------------------------------- input
+const keys = new Set();
+const mouse = { ndc: new THREE.Vector2(), ground: null, held: false };
+let pendingCast = null, pendingDest = null;
+const KEYCAST = { Digit1: '1', Digit2: '2', Digit3: '3', Digit4: '4', KeyQ: 'Q', Numpad1: '1', Numpad2: '2', Numpad3: '3', Numpad4: '4' };
+function queueCast(key) { pendingCast = key; ui.flashSlot(key); }
+
+addEventListener('keydown', e => {
+  initAudio();
+  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
+  if (state !== 'crypt') { if (!e.repeat) ui.key(e); return; }
+  if (e.code === 'Escape') { sfx.back(); go('title'); return; }
+  if (combat.outcome) { if (e.code === 'Enter' || e.code === 'KeyR') { sfx.select(); go('crypt'); } return; }
+  keys.add(e.code);
+  if (e.repeat) return;
+  if (KEYCAST[e.code]) queueCast(KEYCAST[e.code]);
+  if (e.code === 'Space') queueCast('1');
+});
+addEventListener('keyup', e => keys.delete(e.code));
+addEventListener('blur', () => keys.clear());
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+const raycaster = new THREE.Raycaster(), groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+function updateGround(e) {
+  mouse.ndc.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  raycaster.setFromCamera(mouse.ndc, camera);
+  const hit = new THREE.Vector3(); mouse.ground = raycaster.ray.intersectPlane(groundPlane, hit) ? hit : null;
+}
+canvas.addEventListener('pointermove', e => { updateGround(e); if (mouse.held && state === 'crypt' && mouse.ground) pendingDest = mouse.ground.clone(); });
+canvas.addEventListener('pointerdown', e => {
+  initAudio(); updateGround(e);
+  if (state === 'title' || state === 'quit') { if (state === 'quit') go('title'); return; }
+  if (state !== 'crypt' || combat.outcome) return;
+  if (e.button === 2) queueCast('1');
+  else if (e.button === 0 && mouse.ground) { mouse.held = true; pendingDest = mouse.ground.clone(); }
+});
+addEventListener('pointerup', () => { mouse.held = false; });
+document.getElementById('quit').addEventListener('pointerdown', () => go('title'));
+
+function readMove() {
+  let x = 0, z = 0;
+  if (keys.has('KeyA') || keys.has('ArrowLeft')) x -= 1;
+  if (keys.has('KeyD') || keys.has('ArrowRight')) x += 1;
+  if (keys.has('KeyW') || keys.has('ArrowUp')) z -= 1;
+  if (keys.has('KeyS') || keys.has('ArrowDown')) z += 1;
+  // rotate by camera yaw so W always moves "up" the screen
+  const y = THREE.MathUtils.degToRad(cam.yaw), c = Math.cos(y), s = Math.sin(y);
+  return { x: x * c + z * s, z: -x * s + z * c };
+}
+
+// ---------------------------------------------------------------- loop
+const telemetry = window.__crawler = { ready: false, frozen: FREEZE, state: START };
+let time = FREEZE ? FROZEN_TIME : 0, last = performance.now(), frames = 0;
+function frame(now) {
+  const dt = FREEZE ? 0 : Math.min(0.05, (now - last) / 1000); last = now; time += dt;
+  if (state === 'crypt') {
+    combat.update(dt, { move: readMove(), dest: pendingDest, cast: pendingCast, aim: mouse.ground }, time);
+    pendingDest = null; pendingCast = null;
+    const k = combat.knight.pos, P = POSES.crypt;
+    const tx = THREE.MathUtils.clamp(k.x, -3, 3), tz = THREE.MathUtils.clamp(k.z, -1, 5.5);
+    if (!FREEZE) cam.target.lerp(new THREE.Vector3(tx, P.target.y, tz), 1 - Math.exp(-dt * 4));
+  }
+  if (!FREEZE && state !== 'crypt') {
+    const p = POSES[state] || POSES.title, k = 1 - Math.exp(-dt * 2.5);
+    cam.target.lerp(p.target, k); cam.yaw += (p.yaw - cam.yaw) * k; cam.pitch += (p.pitch - cam.pitch) * k; cam.height += (p.height - cam.height) * k;
+  } else if (!FREEZE && state === 'crypt') {
+    const p = POSES.crypt, k = 1 - Math.exp(-dt * 2.5);
+    cam.yaw += (p.yaw - cam.yaw) * k; cam.pitch += (p.pitch - cam.pitch) * k; cam.height += (p.height - cam.height) * k;
+  }
+  shake = Math.max(0, shake - dt * 0.9);
+  placeCamera(time);
+  world.update(time, camera);
+  updateAudio(dt);
+  if (state === 'crypt') {
+    const s = combat.state();
+    ui.hud(s, dt || 1);
+    Object.assign(telemetry, s);
+  }
+  ui.updateNumbers(dt, project);
+  composer.render(dt);
+  Object.assign(telemetry, { state, selectedMenu: ['ENTER THE CRYPT', 'SETTINGS', 'QUIT'][ui.titleSel], settingsFocus: ui.focusRow, settings: { ...ui.settings }, draft: { ...ui.draft }, time: +time.toFixed(3) });
+  if (++frames === 4) telemetry.ready = true;
+  requestAnimationFrame(frame);
+}
+
+async function boot() {
+  try { await Promise.all(['600 60px Cinzel', '500 40px Cinzel', '400 16px Inter', '500 16px Inter', '600 16px Inter'].map(f => document.fonts.load(f))); await document.fonts.ready; } catch { /* fonts unavailable: fall back */ }
+  ui.drawStatic();
+  resize();
+  go(START);
+  requestAnimationFrame(frame);
+}
+boot();
