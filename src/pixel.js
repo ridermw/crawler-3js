@@ -358,14 +358,18 @@ export function markerTex() {
 }
 
 // Slash trail: bright leading edge fading toward the tail, soft radial falloff.
+// Slash trail: a thin white-hot leading edge with fine streaks trailing into a soft amber falloff.
 export function arcTex() {
-  const w = 512, h = 64;
+  const w = 512, h = 64, r = rng(404);
+  const streak = Array.from({ length: h }, () => 0.6 + r() * 0.4);
   return toTexture(alphaCanvas(w, h, (x, y) => {
     const u = x / (w - 1), v = y / (h - 1);
-    const along = Math.pow(u, 1.6);
-    const across = Math.pow(Math.sin(Math.PI * v), 0.6) * (0.45 + 0.55 * v);
-    const a = clamp01(along * across * 1.3);
-    return [255, 236 - 40 * (1 - v), 170 - 80 * (1 - v), 255 * a];
+    const along = Math.pow(u, 2.2) * smooth(1, 0.93, u);
+    const edge = Math.exp(-Math.pow((1 - v) / 0.09, 2));            // bright outer rim
+    const body = Math.pow(v, 3) * 0.35 * streak[y];                // faint streaks toward the rim
+    const a = clamp01(along * (edge + body) * 1.5);
+    const hot = clamp01(edge * 1.4);
+    return [255, 214 + 41 * hot, 140 + 115 * hot, 255 * a];
   }), { repeat: false });
 }
 

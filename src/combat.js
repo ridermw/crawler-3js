@@ -23,10 +23,10 @@ function mats() {
   const steel = P.steelSurface(101), bone = P.boneSurface(102), robe = P.clothSurface(103, [30, 24, 26]), cape = P.clothSurface(104, [22, 22, 26]);
   const std = o => new THREE.MeshStandardMaterial({ roughness: 0.8, ...o });
   M = {
-    armor: std({ ...steel, color: '#a4a9b0', metalness: 0.35, roughness: 0.45 }),
-    armorDark: std({ ...steel, color: '#6a6f76', metalness: 0.3, roughness: 0.55 }),
+    armor: std({ ...steel, color: '#b8bdc4', metalness: 0.55, roughness: 0.38, emissive: '#1a1c20', envMapIntensity: 1 }),
+    armorDark: std({ ...steel, color: '#80868e', metalness: 0.45, roughness: 0.5, emissive: '#101114' }),
     leather: std({ color: '#3b2b20', roughness: 0.85 }),
-    cloth: std({ ...cape, color: '#a0a0a8', side: THREE.DoubleSide }),
+    cloth: std({ ...cape, color: '#6a6a72', side: THREE.DoubleSide }),
     brass: std({ color: '#a8823e', metalness: 0.45, roughness: 0.4 }),
     blade: std({ color: '#dfe3e8', metalness: 0.5, roughness: 0.25, emissive: '#2a2a2a' }),
     bone: std({ ...bone, color: '#d6cbb0', roughness: 0.7 }),
@@ -239,7 +239,7 @@ export class Combat {
 
   buildFx() {
     const add = (mesh) => { this.group.add(mesh); return mesh; };
-    this.arc = add(new THREE.Mesh(arcGeometry(1.45, 1.95, -1.25, 1.3), new THREE.MeshBasicMaterial({ map: this.tex.arc, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, color: '#ffe7b0' })));
+    this.arc = add(new THREE.Mesh(arcGeometry(1.25, 1.9, -1.35, 1.25), new THREE.MeshBasicMaterial({ map: this.tex.arc, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, color: '#ffe7b0' })));
     this.arc.visible = false;
     this.marker = add(new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.95), new THREE.MeshBasicMaterial({ map: this.tex.marker, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, color: '#ffd48a' })));
     this.marker.rotation.x = -Math.PI / 2; this.marker.visible = false;
@@ -253,7 +253,7 @@ export class Combat {
     this.staffLight = new THREE.PointLight('#ff3020', 4, 5, 1.6); this.group.add(this.staffLight);
     this.staffGlow = add(new THREE.Sprite(new THREE.SpriteMaterial({ map: this.tex.disc, color: '#ff4030', blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, opacity: 0.9 })));
     this.staffGlow.scale.setScalar(0.7 * ACTOR_SCALE);
-    this.knightLight = new THREE.PointLight('#c8d0d8', 9, 7, 1.3); this.group.add(this.knightLight);
+    this.knightLight = new THREE.PointLight('#c8d0d8', 14, 8, 1.2); this.group.add(this.knightLight);
   }
 
   spawnEnemy(kind, x, z, seed) {
@@ -429,7 +429,7 @@ export class Combat {
       this.staffGlow.position.copy(gp); this.staffLight.position.copy(gp);
       this.staffGlow.visible = !w.dead; this.staffLight.intensity = w.dead ? 0 : 6 + Math.sin(t * 6) * 1.5;
     }
-    this.knightLight.position.set(k.pos.x - 1.5, 3.2, k.pos.z + 2.0);
+    this.knightLight.position.set(k.pos.x - 1.5, 3.2 * ACTOR_SCALE, k.pos.z + 2.0);
     for (const e of this.enemies) if (e.J.outline) { const on = e === this.target && !e.dead; e.J.outline.forEach(o => o.visible = on); }
     // projectiles
     for (const p of this.projectiles) {
@@ -658,4 +658,5 @@ export class Combat {
     };
   }
   setVisible(v) { this.group.visible = v; }
+  setEnvironment(env, k) { const m = mats(); for (const key of ['armor', 'armorDark', 'blade', 'brass']) { m[key].envMap = env; m[key].envMapIntensity = k; m[key].needsUpdate = true; } }
 }

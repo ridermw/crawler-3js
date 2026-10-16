@@ -6,6 +6,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { World } from './world.js';
 import { Combat, ABILITIES } from './combat.js';
 import { UI } from './ui.js';
@@ -123,6 +124,11 @@ const combat = new Combat(scene, world, {
   },
 });
 combat.setVisible(false);
+// A dim generated studio environment gives the knight's steel something to reflect.
+{
+  const pm = new THREE.PMREMGenerator(renderer), env = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+  combat.setEnvironment(env, 0.35); pm.dispose();
+}
 
 function applyLive(s) {
   settingsLive = { ...s };
