@@ -173,8 +173,9 @@ function applyClay() {
     if (m.alphaTest > 0 && m.map) { o.material = clay.clone(); o.material.map = m.map; o.material.alphaTest = m.alphaTest; o.material.color.set('#d9d9d9'); o.material.side = m.side; return; }
     o.material = clay;
   });
-  scene.add(new THREE.AmbientLight('#ffffff', 0.9));
-  world.hemi.color.set('#ffffff'); world.hemi.groundColor.set('#8a8a8a'); world.hemi.intensity = 2.2;
+  scene.add(new THREE.AmbientLight('#ffffff', 0.35));
+  world.hemi.color.set('#ffffff'); world.hemi.groundColor.set('#5a5a5a'); world.hemi.intensity = 1.6;
+  const key = new THREE.DirectionalLight('#ffffff', 1.4); key.position.set(-6, 14, 10); scene.add(key);
   scene.fog = null; scene.background = new THREE.Color('#dcdcdc');
   bloom.enabled = false; grade.enabled = false; renderer.toneMapping = THREE.NoToneMapping;
   renderer.shadowMap.enabled = false;

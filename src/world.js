@@ -194,34 +194,43 @@ export class World {
     const r = this.r;
     const inGrate = (x, z, pad) => this.grates.some(([gx, gz]) => Math.abs(x - gx) < 0.85 + pad && Math.abs(z - gz) < 0.85 + pad);
     const inRoom = (x, z) => WALK.some(w => x > w.x0 - 0.6 && x < w.x1 + 0.6 && z > w.z0 - 1.6 && z < w.z1 + 0.6);
-    // Irregular flagstones: rows of slabs with varied widths; some slabs split across either
-    // axis so the seams never settle into a regular brick bond.
-    let z = -9.4;
-    while (z < 18) {
-      const d = P.range(r, 0.85, 1.35);
-      let x = -15 + r() * 0.9;
-      while (x < 15) {
-        const w = P.range(r, 0.8, 1.9);
-        const cx = x + w / 2, cz = z + d / 2;
-        if (!inGrate(cx, cz, 0)) {
-          const inside = inRoom(cx, cz);
-          const tint = inside ? P.range(r, 0.62, 1.18) : P.range(r, 0.45, 0.8);
-          const sr = r(), f = P.range(r, 0.35, 0.65);
-          const parts = sr < 0.14 ? [[cx - w / 2 + w * f / 2, w * f, cz, d], [cx + w * f / 2, w * (1 - f), cz, d]]
-            : sr < 0.3 ? [[cx, w, cz - d / 2 + d * f / 2, d * f], [cx, w, cz + d * f / 2, d * (1 - f)]] : [[cx, w, cz, d]];
-          for (const [px, pw, pz, pd] of parts) {
-            const settle = inside ? (r() - 0.5) * 0.04 : (r() - 0.5) * 0.12;
-            this.slab(pw - 0.04, 0.2, pd - 0.04, px, -0.1 + settle, pz, { key: 'floor', rx: (r() - 0.5) * 0.025, rz: (r() - 0.5) * 0.025, tint: tint * P.range(r, 0.92, 1.08), bevel: 0.045, uv: 2.0 });
-          }
-        }
-        x += w;
-      }
-      z += d;
+    // Irregular flagstones: a jittered lattice whose shared corners make four-sided slabs of uneven
+    // shape (no straight seam runs across the room). Each slab is an inset, bevel-free prism that
+    // settles slightly; a few slabs crack into two shards.
+    const pitch = 1.05, nx = 30, nz = 27, x0 = -15.5, z0 = -9.6;
+    const jit = [];
+    for (let j = 0; j <= nz; j++) { jit.push([]); for (let i = 0; i <= nx; i++) jit[j].push([x0 + i * pitch + (r() - 0.5) * pitch * 0.55, z0 + j * pitch + (r() - 0.5) * pitch * 0.55]); }
+    const prism = (pts, y, tint, settleRot) => {
+      const shape = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z)));
+      const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.2, bevelEnabled: true, bevelThickness: 0.035, bevelSize: 0.035, bevelSegments: 1 });
+      this.b.add('floor', prep(geo, { pos: [0, y, 0], rot: [-Math.PI / 2 + settleRot[0], 0, settleRot[1]], uv: 2.0, tint }));
+    };
+    for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
+      // merge some cells horizontally into long slabs
+      const wide = i < nx - 1 && r() < 0.28;
+      const q = [jit[j][i], jit[j][i + (wide ? 2 : 1)], jit[j + 1][i + (wide ? 2 : 1)], jit[j + 1][i]];
+      const cx = (q[0][0] + q[1][0] + q[2][0] + q[3][0]) / 4, cz = (q[0][1] + q[1][1] + q[2][1] + q[3][1]) / 4;
+      if (wide) i++;
+      if (inGrate(cx, cz, 0.45)) continue;
+      const inside = inRoom(cx, cz);
+      const tint = (inside ? P.range(r, 0.66, 1.15) : P.range(r, 0.45, 0.8));
+      const inset = q.map(([x, z]) => [cx + (x - cx) * 0.94, cz + (z - cz) * 0.94]);
+      const y = -0.2 + (inside ? (r() - 0.5) * 0.04 : (r() - 0.5) * 0.12);
+      const tilt = [(r() - 0.5) * 0.02, (r() - 0.5) * 0.02];
+      if (r() < 0.12) { // cracked: split along a jagged diagonal
+        const m1 = [(inset[0][0] + inset[1][0]) / 2 + (r() - 0.5) * 0.3, (inset[0][1] + inset[1][1]) / 2], m2 = [(inset[2][0] + inset[3][0]) / 2 + (r() - 0.5) * 0.3, (inset[2][1] + inset[3][1]) / 2];
+        const shrink = poly => { const ax = poly.reduce((a, p) => a + p[0], 0) / poly.length, az = poly.reduce((a, p) => a + p[1], 0) / poly.length; return poly.map(([x, z]) => [ax + (x - ax) * 0.95, az + (z - az) * 0.95]); };
+        prism(shrink([inset[0], m1, m2, inset[3]]), y, tint * P.range(r, 0.9, 1.05), tilt);
+        prism(shrink([m1, inset[1], inset[2], m2]), y - 0.02, tint * P.range(r, 0.85, 1.0), [tilt[0] * 2, -tilt[1] * 2]);
+      } else prism(inset, y, tint, tilt);
     }
     this.b.add('mortar', prep(new THREE.PlaneGeometry(40, 40), { pos: [0, -0.12, 2], rot: [-Math.PI / 2, 0, 0] }));
     // recessed iron grates
     for (const [gx, gz] of this.grates) {
       const s = 1.6, bars = 7;
+      // dressed stone surround so the irregular floor meets the grate cleanly
+      for (const [fx, fz, fw, fd] of [[0, -1.05, 2.5, 0.5], [0, 1.05, 2.5, 0.5], [-1.05, 0, 0.5, 1.6], [1.05, 0, 0.5, 1.6]])
+        this.slab(fw - 0.04, 0.24, fd - 0.04, gx + fx, -0.08, gz + fz, { key: 'floor', tint: P.range(r, 0.8, 0.95), bevel: 0.04, uv: 2.0 });
       this.b.add('mortar', prep(new THREE.BoxGeometry(s, 0.05, s), { pos: [gx, -0.45, gz] }));
       for (const [fx, fz, fw, fd] of [[0, -s / 2, s + 0.16, 0.12], [0, s / 2, s + 0.16, 0.12], [-s / 2, 0, 0.12, s], [s / 2, 0, 0.12, s]])
         this.b.add('iron', prep(new THREE.BoxGeometry(fw, 0.1, fd), { pos: [gx + fx, -0.02, gz + fz], uv: 1 }));
