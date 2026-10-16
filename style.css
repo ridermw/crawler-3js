@@ -143,7 +143,7 @@ html, body { touch-action: none; overscroll-behavior: none; }
 #stick i { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; background: rgba(214,154,69,0.35); border: 1px solid #d9b06a; }
 .menu-btn { position: absolute; right: calc(29 * var(--u)); top: calc(262 * var(--u)); width: calc(221 * var(--u)); min-height: 36px; font-size: max(12px, calc(15 * var(--u))); letter-spacing: 0.12em; color: #cfc8b6; background: rgba(11,13,16,0.75); border: 1px solid #5b5650; pointer-events: auto; }
 .banner-msg { pointer-events: auto; }
-.banner-msg .bm-actions { margin-top: 18px; display: flex; gap: 18px; justify-content: center; }
+.banner-msg .bm-actions { margin-top: 18px; display: none; gap: 18px; justify-content: center; }
 .banner-msg .bm-actions button { min-width: 140px; min-height: 44px; font-size: 15px; letter-spacing: 0.14em; color: #e3c286; border: 1px solid rgba(138,106,53,0.8); background: rgba(11,13,16,0.8); }
 body.touch .slot { touch-action: none; }
 body.touch .banner-msg .bm-actions { display: flex; }
