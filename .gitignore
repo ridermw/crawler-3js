@@ -1,0 +1,4 @@
+.DS_Store
+node_modules/
+# scratch captures; curated validation evidence is committed under artifacts/validation/
+artifacts/validation/tmp/
