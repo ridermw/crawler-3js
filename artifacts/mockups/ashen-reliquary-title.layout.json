@@ -1,0 +1,13 @@
+{
+  "screen": "title",
+  "referenceSize": [1536, 1024],
+  "elements": [
+    { "id": "title_lockup", "anchor": "safe", "box": [136, 408, 636, 576], "tolerant_text": false },
+    { "id": "divider", "anchor": "safe", "box": [248, 570, 522, 606], "tolerant_text": false },
+    { "id": "subtitle", "anchor": "safe", "box": [236, 618, 546, 640], "tolerant_text": false },
+    { "id": "menu_rows", "anchor": "safe", "box": [160, 664, 464, 812], "tolerant_text": false },
+    { "id": "click_hint", "anchor": "safe", "box": [238, 842, 428, 862], "tolerant_text": false },
+    { "id": "footer_left", "anchor": "bottom-left", "box": [100, 960, 360, 982], "tolerant_text": true },
+    { "id": "footer_right", "anchor": "bottom-right", "box": [1455, 960, 1492, 982], "tolerant_text": false }
+  ]
+}

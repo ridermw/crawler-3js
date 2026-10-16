@@ -1,0 +1,7 @@
+{
+  "screen": "settings",
+  "referenceSize": [1536, 1024],
+  "elements": [
+    { "id": "settings_panel", "anchor": "safe", "box": [120, 120, 722, 902], "tolerant_text": false }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "screen": "crypt",
+  "referenceSize": [1536, 1024],
+  "elements": [
+    { "id": "objective", "anchor": "top-left", "box": [24, 28, 238, 92], "tolerant_text": false },
+    { "id": "boss_bar", "anchor": "top-center", "box": [556, 10, 978, 74], "tolerant_text": false },
+    { "id": "minimap", "anchor": "top-right", "box": [1278, 10, 1528, 258], "tolerant_text": false },
+    { "id": "health_orb", "anchor": "bottom-left", "box": [36, 762, 228, 986], "tolerant_text": false },
+    { "id": "action_bar", "anchor": "bottom-center", "box": [482, 844, 1054, 994], "tolerant_text": false },
+    { "id": "loot_toast", "anchor": "bottom-right", "box": [1278, 690, 1526, 748], "tolerant_text": true },
+    { "id": "essence_orb", "anchor": "bottom-right", "box": [1312, 762, 1504, 986], "tolerant_text": false }
+  ]
+}
