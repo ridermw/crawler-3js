@@ -8,7 +8,7 @@
       "uiContent": true,
       "uiPlacement": true
     },
-    "overallScore": 77.10492652127894,
+    "overallScore": 77.28356264197382,
     "passed": false
   },
   "legacy": {
@@ -23,19 +23,19 @@
       },
       {
         "column": 1,
-        "deficit": -0.00477366255144035,
-        "ratioPercent": 103.18215069495245,
+        "deficit": -0.005048010973936895,
+        "ratioPercent": 103.36503291880028,
         "referenceEdgeDensity": 0.15001371742112482,
         "row": 0,
-        "runtimeEdgeDensity": 0.15478737997256517
+        "runtimeEdgeDensity": 0.15506172839506172
       },
       {
         "column": 2,
-        "deficit": 0.06847736625514406,
-        "ratioPercent": 74.58766035430666,
+        "deficit": 0.06375857338820304,
+        "ratioPercent": 76.3388311952759,
         "referenceEdgeDensity": 0.2694650205761317,
         "row": 0,
-        "runtimeEdgeDensity": 0.20098765432098764
+        "runtimeEdgeDensity": 0.20570644718792866
       },
       {
         "column": 3,
@@ -71,27 +71,27 @@
       },
       {
         "column": 1,
-        "deficit": -0.010480109739369026,
-        "ratioPercent": 103.69010819165379,
+        "deficit": -0.015528120713305948,
+        "ratioPercent": 105.46754250386401,
         "referenceEdgeDensity": 0.2840054869684499,
         "row": 1,
-        "runtimeEdgeDensity": 0.29448559670781893
+        "runtimeEdgeDensity": 0.29953360768175585
       },
       {
         "column": 2,
-        "deficit": 0.029739368998628224,
-        "ratioPercent": 90.09864815491414,
+        "deficit": 0.008395061728395048,
+        "ratioPercent": 97.20496894409938,
         "referenceEdgeDensity": 0.3003566529492455,
         "row": 1,
-        "runtimeEdgeDensity": 0.2706172839506173
+        "runtimeEdgeDensity": 0.29196159122085047
       },
       {
         "column": 3,
-        "deficit": -0.07895747599451308,
-        "ratioPercent": 129.43944353518825,
+        "deficit": -0.07901234567901239,
+        "ratioPercent": 129.45990180032734,
         "referenceEdgeDensity": 0.26820301783264744,
         "row": 1,
-        "runtimeEdgeDensity": 0.3471604938271605
+        "runtimeEdgeDensity": 0.3472153635116598
       },
       {
         "column": 4,
@@ -135,11 +135,11 @@
       },
       {
         "column": 3,
-        "deficit": -0.037860082304526754,
-        "ratioPercent": 112.35009844281367,
+        "deficit": -0.03791495198902606,
+        "ratioPercent": 112.36799713620906,
         "referenceEdgeDensity": 0.30655692729766804,
         "row": 2,
-        "runtimeEdgeDensity": 0.3444170096021948
+        "runtimeEdgeDensity": 0.3444718792866941
       },
       {
         "column": 4,
@@ -206,13 +206,13 @@
         "runtimeEdgeDensity": 0.18480109739369
       }
     ],
-    "edgeDensityCoverage": 95.58897523340974,
-    "edgeDistributionSimilarity": 94.5678394718455,
-    "lowFrequencyComposition": 96.31833382644325,
-    "pixelSimilarity": 92.8365866633195,
+    "edgeDensityCoverage": 96.1238143157973,
+    "edgeDistributionSimilarity": 94.71089838781525,
+    "lowFrequencyComposition": 96.31160930154718,
+    "pixelSimilarity": 92.84253416653965,
     "referenceEdgeDensity": 0.24536351165980796,
-    "runtimeEdgeDensity": 0.23454046639231824,
-    "structuralMetric": 94.87418020031477
+    "runtimeEdgeDensity": 0.2358527663465935,
+    "structuralMetric": 95.13477316620985
   },
   "reference": {
     "height": 1024,
@@ -225,15 +225,15 @@
     "width": 1920
   },
   "scene": {
-    "chromaSimilarity": 82.99681994681939,
-    "coarseContrastSsim": 51.88050866127014,
-    "hogOrientationSimilarity": 57.68929266772691,
-    "lumaHistogramSimilarity": 86.18878877201259,
-    "lumaSimilarity": 88.28790818651517,
-    "multiScaleDistribution12x8": 66.21151448367037,
-    "multiScaleEdgeCoverage": 83.13600720169748,
-    "sceneColor": 85.38213862502641,
-    "sceneStructure": 66.2921056806126
+    "chromaSimilarity": 82.87802473761332,
+    "coarseContrastSsim": 51.88060998916626,
+    "hogOrientationSimilarity": 57.60970076419694,
+    "lumaHistogramSimilarity": 86.30944134599885,
+    "lumaSimilarity": 87.78136586149533,
+    "multiScaleDistribution12x8": 66.15441581282171,
+    "multiScaleEdgeCoverage": 84.83271957526959,
+    "sceneColor": 85.2068812268743,
+    "sceneStructure": 66.7669670146688
   },
   "schema": "ashen-reliquary-scene-fidelity/v2",
   "screen": "crypt",

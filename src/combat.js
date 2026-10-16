@@ -20,7 +20,7 @@ const R = ACTOR_SCALE / 1.3;
 let M = null;
 function mats() {
   if (M) return M;
-  const steel = P.steelSurface(101), bone = P.boneSurface(102), robe = P.clothSurface(103, [30, 24, 26]), cape = P.clothSurface(104, [22, 22, 26]);
+  const steel = P.steelSurface(101), bone = P.boneSurface(102), robe = P.clothSurface(103, [58, 50, 50]), cape = P.clothSurface(104, [22, 22, 26]);
   const std = o => new THREE.MeshStandardMaterial({ roughness: 0.8, ...o });
   M = {
     armor: std({ ...steel, color: '#b8bdc4', metalness: 0.55, roughness: 0.38, emissive: '#1a1c20', envMapIntensity: 1 }),
@@ -31,7 +31,7 @@ function mats() {
     blade: std({ color: '#dfe3e8', metalness: 0.5, roughness: 0.25, emissive: '#2a2a2a' }),
     bone: std({ ...bone, color: '#d6cbb0', roughness: 0.7 }),
     boneDark: std({ ...bone, color: '#8c8270', roughness: 0.8 }),
-    robe: std({ ...robe, color: '#b0a0a4', side: THREE.DoubleSide }),
+    robe: std({ ...robe, color: '#c6b6ae', side: THREE.DoubleSide }),
     crimson: std({ color: '#7a1a1e', roughness: 0.7 }),
     rust: std({ color: '#5a4030', metalness: 0.5, roughness: 0.7 }),
     eye: new THREE.MeshBasicMaterial({ color: '#ff4a30', toneMapped: false }),
@@ -143,15 +143,15 @@ function buildThrall(seed = 1) {
 function buildWarden() {
   const m = mats(), root = new THREE.Group(), J = {};
   J.hips = joint(root, 0, 0.0, 0);
-  const robe = new THREE.CylinderGeometry(0.32, 0.72, 1.55, 10, 4, true);
+  const robe = new THREE.CylinderGeometry(0.26, 0.48, 1.55, 10, 4, true);
   { // tattered hem: jitter the lowest ring of vertices
     const p = robe.attributes.position, r = P.rng(77);
     for (let i = 0; i < p.count; i++) if (p.getY(i) < -0.7) p.setY(i, p.getY(i) + r() * 0.22);
   }
   part(robe, m.robe, 0, 0.78, 0, J.hips);
-  part(cyl(0.34, 0.36, 0.1, 10), m.crimson, 0, 1.5, 0, J.hips);
+  part(cyl(0.28, 0.3, 0.1, 10), m.crimson, 0, 1.5, 0, J.hips);
   J.torso = joint(J.hips, 0, 1.5, 0);
-  part(cyl(0.36, 0.32, 0.6, 8), m.robe, 0, 0.28, 0, J.torso, { sz: 0.75 });
+  part(cyl(0.3, 0.27, 0.6, 8), m.robe, 0, 0.28, 0, J.torso, { sz: 0.7 });
   part(box(0.16, 0.7, 0.02), m.crimson, 0, 0.2, 0.25, J.torso);
   for (const s of [-1, 1]) {
     part(sph(0.2, 7, 5), m.boneDark, s * 0.38, 0.6, 0, J.torso, { sy: 0.6 });
@@ -258,7 +258,7 @@ export class Combat {
 
   spawnEnemy(kind, x, z, seed) {
     const J = kind === 'warden' ? buildWarden() : buildThrall(seed);
-    if (kind === 'warden') J.root.scale.setScalar(0.98 * ACTOR_SCALE);
+    if (kind === 'warden') J.root.scale.setScalar(0.9 * ACTOR_SCALE);
     const e = new Actor(J, kind, kind === 'warden' ? WARDEN_HP : THRALL_HP, this.group);
     if (kind !== 'warden') addOutline(J);
     e.pos.set(x, 0, z); e.cd = 1 + this.r() * 1.5; e.castCd = 2.5; e.summonCd = 12;
@@ -638,7 +638,7 @@ export class Combat {
       J.shR.rotation.set(-0.6 - 1.9 * p, 0, -0.35 - 0.2 * p); J.elR.rotation.set(-0.6 + 0.4 * p, 0, 0); J.handR.rotation.set(0.7 + 0.4 * p, 0, 0.2);
       J.shL.rotation.set(-0.4 - 0.6 * p, 0, 0.4 + 0.4 * p); J.head.rotation.x = -0.2 * p; J.torso.rotation.x = -0.12 * p;
     } else if (e.anim === 'die') {
-      e.deadT += dt; const p = ease(t / 1.2); J.root.rotation.x = -0.4 * p; J.root.position.y = -1.3 * p; J.root.scale.setScalar(0.98 * ACTOR_SCALE * (1 - 0.3 * p));
+      e.deadT += dt; const p = ease(t / 1.2); J.root.rotation.x = -0.4 * p; J.root.position.y = -1.3 * p; J.root.scale.setScalar(0.9 * ACTOR_SCALE * (1 - 0.3 * p));
     }
     if (e.hitT > 0) J.torso.rotation.x -= 0.1;
     J.root.position.y = e.dead ? J.root.position.y : 0;
