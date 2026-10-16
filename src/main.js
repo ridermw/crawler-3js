@@ -34,7 +34,10 @@ renderer.toneMappingExposure = 1.3;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#07090c');
 scene.fog = new THREE.FogExp2('#0e1318', 0.012);
-const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.5, 140);
+// Perspective camera framed by the vertical extent (`height`) visible at the target, so a pose
+// reads the same at any field of view; a narrow fov approaches the orthographic look.
+const camera = new THREE.PerspectiveCamera(20, 16 / 9, 0.5, 400);
+const FOG_DENSITY_X_DIST = 0.72;
 
 const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
 const composer = new EffectComposer(renderer, rt);
@@ -71,20 +74,23 @@ composer.addPass(new OutputPass());
 const POSES = {
   title: { target: new THREE.Vector3(0.9, 0.5, -1.2), yaw: 6, pitch: 38, height: 14.5, moon: 1.25, hemi: 0.8, shade: 0.75 },
   settings: { target: new THREE.Vector3(-3.3, 2.2, -4.6), yaw: 8, pitch: 26, height: 13.5, moon: 2.4, hemi: 1.3 },
-  crypt: { target: new THREE.Vector3(0, 0.65, 2.2), yaw: 0, pitch: 35, height: 17.2, moon: 2.15, hemi: 1.3, pool: 5, sat: 0.7, shade: 0.05 },
+  crypt: { target: new THREE.Vector3(0.15, -1.1, 2.2), yaw: 0, pitch: 38, height: 17.2, fov: 8, moon: 2.15, hemi: 1.3, pool: 5, sat: 0.7, shade: 0.05 },
 };
-const cam = { target: POSES[START].target.clone(), yaw: POSES[START].yaw, pitch: POSES[START].pitch, height: POSES[START].height };
+const cam = { target: POSES[START].target.clone(), yaw: POSES[START].yaw, pitch: POSES[START].pitch, height: POSES[START].height, fov: POSES[START].fov ?? 4 };
 let shake = 0;
 function placeCamera(t) {
   let yaw = cam.yaw, pitch = cam.pitch;
   if (settingsLive.cameraDrift && !FREEZE) { yaw += Math.sin(t * 0.11) * (state === 'crypt' ? 0.4 : 1.6); pitch += Math.sin(t * 0.07) * 0.5; }
-  const y = THREE.MathUtils.degToRad(yaw), p = THREE.MathUtils.degToRad(pitch), D = 60;
+  // narrow (portrait) screens see more of the room vertically so the width still frames the arena
+  const fit = Math.max(1, 0.95 / (innerWidth / innerHeight));
+  const fov = cam.fov, D = (cam.height * fit / 2) / Math.tan(THREE.MathUtils.degToRad(fov / 2));
+  const y = THREE.MathUtils.degToRad(yaw), p = THREE.MathUtils.degToRad(pitch);
   camera.position.set(cam.target.x + Math.sin(y) * Math.cos(p) * D, cam.target.y + Math.sin(p) * D, cam.target.z + Math.cos(y) * Math.cos(p) * D);
   if (shake > 0) { camera.position.x += (rand() - 0.5) * shake; camera.position.y += (rand() - 0.5) * shake; }
   camera.lookAt(cam.target);
-  const aspect = innerWidth / innerHeight, h = cam.height / 2;
-  camera.left = -h * aspect; camera.right = h * aspect; camera.top = h; camera.bottom = -h;
+  camera.fov = fov; camera.aspect = innerWidth / innerHeight; camera.near = Math.max(0.5, D - 40); camera.far = D + 60;
   camera.updateProjectionMatrix();
+  if (scene.fog) scene.fog.density = FOG_DENSITY_X_DIST / D;
 }
 let rs = 0x9e3779b9; const rand = () => { rs ^= rs << 13; rs >>>= 0; rs ^= rs >>> 17; rs ^= rs << 5; rs >>>= 0; return rs / 4294967296; };
 
@@ -146,7 +152,7 @@ function go(next) {
   const pose = POSES[next] || POSES.title; world.setMood(pose.moon, pose.hemi, pose.pool);
   grade.uniforms.uShade.value = pose.shade || 0;
   grade.uniforms.uSat.value = pose.sat ?? 0.9; grade.uniforms.uGain.value = pose.gain ?? 1;
-  if (!prev || FREEZE) { const p = POSES[next] || POSES.title; cam.target.copy(p.target); cam.yaw = p.yaw; cam.pitch = p.pitch; cam.height = p.height; }
+  if (!prev || FREEZE) { const p = POSES[next] || POSES.title; cam.target.copy(p.target); cam.yaw = p.yaw; cam.pitch = p.pitch; cam.height = p.height; cam.fov = p.fov ?? 4; }
   if (PASS === 'clay') applyClay();
 }
 
@@ -199,15 +205,45 @@ function updateGround(e) {
   raycaster.setFromCamera(mouse.ndc, camera);
   const hit = new THREE.Vector3(); mouse.ground = raycaster.ray.intersectPlane(groundPlane, hit) ? hit : null;
 }
-canvas.addEventListener('pointermove', e => { updateGround(e); if (mouse.held && state === 'crypt' && mouse.ground) pendingDest = mouse.ground.clone(); });
+// Touch: a floating virtual stick on the left part of the screen moves the knight; a tap anywhere
+// else walks to that spot. Abilities come from the action-bar slots and auto-aim at the nearest foe.
+const stick = { id: null, ox: 0, oy: 0, x: 0, y: 0 }, stickEl = document.getElementById('stick'), knob = stickEl.firstElementChild;
+let touchMode = matchMedia('(pointer: coarse)').matches;
+const setTouch = on => { touchMode = on; document.body.classList.toggle('touch', on); };
+setTouch(touchMode);
+canvas.addEventListener('pointermove', e => {
+  if (e.pointerId === stick.id) {
+    let dx = e.clientX - stick.ox, dy = e.clientY - stick.oy; const l = Math.hypot(dx, dy), m = 50;
+    if (l > m) { dx *= m / l; dy *= m / l; }
+    stick.x = dx / m; stick.y = dy / m; knob.style.transform = `translate(${dx}px, ${dy}px)`;
+    return;
+  }
+  updateGround(e); if (mouse.held && state === 'crypt' && mouse.ground) pendingDest = mouse.ground.clone();
+});
 canvas.addEventListener('pointerdown', e => {
-  initAudio(); updateGround(e);
+  initAudio(); setTouch(e.pointerType === 'touch');
   if (state === 'title' || state === 'quit') { if (state === 'quit') go('title'); return; }
   if (state !== 'crypt' || combat.outcome) return;
+  if (e.pointerType === 'touch' && e.clientX < innerWidth * 0.42 && stick.id === null) {
+    stick.id = e.pointerId; stick.ox = e.clientX; stick.oy = e.clientY; stick.x = stick.y = 0;
+    stickEl.style.left = e.clientX + 'px'; stickEl.style.top = e.clientY + 'px'; stickEl.hidden = false; knob.style.transform = '';
+    canvas.setPointerCapture(e.pointerId);
+    return;
+  }
+  updateGround(e);
   if (e.button === 2) queueCast('1');
   else if (e.button === 0 && mouse.ground) { mouse.held = true; pendingDest = mouse.ground.clone(); }
 });
-addEventListener('pointerup', () => { mouse.held = false; });
+const endStick = e => { if (e.pointerId === stick.id) { stick.id = null; stick.x = stick.y = 0; stickEl.hidden = true; } };
+addEventListener('pointerup', e => { endStick(e); mouse.held = false; });
+addEventListener('pointercancel', e => { endStick(e); mouse.held = false; });
+function nearestEnemy() {
+  const k = combat.knight.pos; let best = null, bd = 9;
+  for (const e of combat.enemies) if (!e.dead) { const d = e.pos.distanceTo(k); if (d < bd) { bd = d; best = e.pos.clone(); } }
+  return best;
+}
+document.getElementById('menuBtn').addEventListener('click', () => { sfx.back(); go('title'); });
+document.querySelectorAll('#bannerMsg [data-act]').forEach(b => b.addEventListener('click', () => { sfx.select(); go(b.dataset.act === 'again' ? 'crypt' : 'title'); }));
 document.getElementById('quit').addEventListener('pointerdown', () => go('title'));
 
 function readMove() {
@@ -216,6 +252,7 @@ function readMove() {
   if (keys.has('KeyD') || keys.has('ArrowRight')) x += 1;
   if (keys.has('KeyW') || keys.has('ArrowUp')) z -= 1;
   if (keys.has('KeyS') || keys.has('ArrowDown')) z += 1;
+  if (stick.id !== null && Math.hypot(stick.x, stick.y) > 0.2) { x = stick.x; z = stick.y; }
   // rotate by camera yaw so W always moves "up" the screen
   const y = THREE.MathUtils.degToRad(cam.yaw), c = Math.cos(y), s = Math.sin(y);
   return { x: x * c + z * s, z: -x * s + z * c };
@@ -226,10 +263,10 @@ const telemetry = window.__crawler = { ready: false, frozen: FREEZE, state: STAR
 window.__crawlerProject = (x, z) => project(new THREE.Vector3(x, 0.5, z));
 // Tuning hook for tools/fidelity/search.mjs: adjust camera, grade and lights without a reload.
 window.__crawlerDebug = {
-  pose: p => { if (p.target) cam.target.set(...p.target); for (const k of ['yaw', 'pitch', 'height']) if (p[k] !== undefined) cam[k] = p[k]; },
+  pose: p => { if (p.target) cam.target.set(...p.target); for (const k of ['yaw', 'pitch', 'height', 'fov']) if (p[k] !== undefined) cam[k] = p[k]; },
   grade: g => { const u = grade.uniforms; if (g.lo) u.uLo.value.set(...g.lo); if (g.hi) u.uHi.value.set(...g.hi); for (const k of ['sat', 'gain', 'shade', 'dim', 'vig']) if (g[k] !== undefined) u['u' + k[0].toUpperCase() + k.slice(1)].value = g[k]; },
   lights: l => { if (l.moon !== undefined) world.moon.intensity = l.moon; if (l.pool !== undefined) world.pool.intensity = l.pool; if (l.hemi !== undefined) world.hemi.intensity = l.hemi; if (l.candles !== undefined) world.lights.forEach(x => { x.userData.base = x.userData.base0 ??= x.userData.base; x.userData.base = x.userData.base0 * l.candles; x.intensity = x.userData.base; }); if (l.exposure !== undefined) renderer.toneMappingExposure = l.exposure; if (l.moonColor) world.moon.color.set(l.moonColor); if (l.hemiColor) world.hemi.color.set(l.hemiColor); },
-  state: () => ({ cam: { target: cam.target.toArray(), yaw: cam.yaw, pitch: cam.pitch, height: cam.height } }),
+  state: () => ({ cam: { target: cam.target.toArray(), yaw: cam.yaw, pitch: cam.pitch, height: cam.height, fov: cam.fov } }),
 };
 Object.defineProperties(telemetry, {
   selectedMenu: { enumerable: true, get: () => ['ENTER THE CRYPT', 'SETTINGS', 'QUIT'][ui.titleSel] },
@@ -241,7 +278,7 @@ let time = FREEZE ? FROZEN_TIME : 0, last = performance.now(), frames = 0;
 function frame(now) {
   const dt = FREEZE ? 0 : Math.min(0.05, (now - last) / 1000); last = now; time += dt;
   if (state === 'crypt') {
-    combat.update(dt, { move: readMove(), dest: pendingDest, cast: pendingCast, aim: mouse.ground }, time);
+    combat.update(dt, { move: readMove(), dest: pendingDest, cast: pendingCast, aim: touchMode ? nearestEnemy() : mouse.ground }, time);
     pendingDest = null; pendingCast = null;
     const k = combat.knight.pos, P = POSES.crypt;
     const tx = THREE.MathUtils.clamp(k.x, -3, 3), tz = THREE.MathUtils.clamp(k.z, -1, 5.5);
@@ -249,10 +286,10 @@ function frame(now) {
   }
   if (!FREEZE && state !== 'crypt') {
     const p = POSES[state] || POSES.title, k = 1 - Math.exp(-dt * 2.5);
-    cam.target.lerp(p.target, k); cam.yaw += (p.yaw - cam.yaw) * k; cam.pitch += (p.pitch - cam.pitch) * k; cam.height += (p.height - cam.height) * k;
+    cam.target.lerp(p.target, k); cam.yaw += (p.yaw - cam.yaw) * k; cam.pitch += (p.pitch - cam.pitch) * k; cam.height += (p.height - cam.height) * k; cam.fov += ((p.fov ?? 4) - cam.fov) * k;
   } else if (!FREEZE && state === 'crypt') {
     const p = POSES.crypt, k = 1 - Math.exp(-dt * 2.5);
-    cam.yaw += (p.yaw - cam.yaw) * k; cam.pitch += (p.pitch - cam.pitch) * k; cam.height += (p.height - cam.height) * k;
+    cam.yaw += (p.yaw - cam.yaw) * k; cam.pitch += (p.pitch - cam.pitch) * k; cam.height += (p.height - cam.height) * k; cam.fov += ((p.fov ?? 4) - cam.fov) * k;
   }
   shake = Math.max(0, shake - dt * 0.9);
   placeCamera(time);

@@ -23,6 +23,10 @@ import sys
 import tempfile
 from pathlib import Path
 
+import cv2
+import numpy as np
+from PIL import Image
+
 ROOT = Path(__file__).resolve().parent.parent.parent
 spec = importlib.util.spec_from_file_location("compare_scene", ROOT / "tools/fidelity/compare-scene.py")
 cs = importlib.util.module_from_spec(spec)
@@ -34,20 +38,35 @@ REF = {"title": "ashen-reliquary-title", "settings": "ashen-reliquary-settings",
 # name: (group, key, index or None, step, lo, hi)
 SPACE = {
     "tx": ("pose", "target", 0, 0.6, -6, 6), "ty": ("pose", "target", 1, 0.5, -2, 4), "tz": ("pose", "target", 2, 0.6, -9, 6),
-    "yaw": ("pose", "yaw", None, 4, -45, 45), "pitch": ("pose", "pitch", None, 3, 15, 60), "height": ("pose", "height", None, 1.0, 6, 22),
+    "yaw": ("pose", "yaw", None, 4, -45, 45), "pitch": ("pose", "pitch", None, 3, 15, 60), "height": ("pose", "height", None, 1.0, 6, 26), "fov": ("pose", "fov", None, 8, 2, 70),
     "gain": ("grade", "gain", None, 0.08, 0.5, 1.6), "sat": ("grade", "sat", None, 0.1, 0.3, 1.2),
     "loR": ("grade", "lo", 0, 0.04, 0.7, 1.3), "loB": ("grade", "lo", 2, 0.04, 0.7, 1.3),
     "hiR": ("grade", "hi", 0, 0.04, 0.7, 1.3), "hiB": ("grade", "hi", 2, 0.04, 0.7, 1.3),
     "shade": ("grade", "shade", None, 0.1, 0, 1),
     "moon": ("lights", "moon", None, 0.3, 0, 5), "hemi": ("lights", "hemi", None, 0.25, 0, 4), "candles": ("lights", "candles", None, 0.2, 0.1, 3), "pool": ("lights", "pool", None, 1.0, 0, 20),
 }
-GROUPS = {"pose": ["tx", "ty", "tz", "yaw", "pitch", "height"], "grade": ["gain", "sat", "loR", "loB", "hiR", "hiB", "shade"], "lights": ["moon", "hemi", "candles", "pool"]}
+GROUPS = {"pose": ["fov", "tx", "ty", "tz", "yaw", "pitch", "height"], "grade": ["gain", "sat", "loR", "loB", "hiR", "hiB", "shade"], "lights": ["moon", "hemi", "candles", "pool"]}
+
+
+def clay_features(g: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    g = cv2.resize(g, (600, 400), interpolation=cv2.INTER_AREA).astype(np.float32)
+    g = (g - g.mean()) / (g.std() + 1e-6)
+    lum = cv2.GaussianBlur(g, (0, 0), 6)
+    gx, gy = cv2.Sobel(cv2.GaussianBlur(g, (0, 0), 2), cv2.CV_32F, 1, 0), cv2.Sobel(cv2.GaussianBlur(g, (0, 0), 2), cv2.CV_32F, 0, 1)
+    edge = cv2.GaussianBlur(np.hypot(gx, gy), (0, 0), 4)
+    return lum, edge
+
+
+def clay_score(a, b) -> tuple[float, dict]:
+    corr = lambda x, y: float(np.corrcoef(x.ravel(), y.ravel())[0, 1])
+    l, e = corr(a[0], b[0]), corr(a[1], b[1])
+    return 50 * (l + e), {"lum": round(l, 3), "edge": round(e, 3)}
 
 
 class Driver:
-    def __init__(self, screen: str):
+    def __init__(self, screen: str, query: str = ""):
         self.p = subprocess.Popen(["node", str(ROOT / "tools/fidelity/search_driver.mjs")], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, cwd=ROOT)
-        self.send({"screen": screen})
+        self.send({"screen": screen, "query": query})
 
     def send(self, cmd: dict) -> dict:
         self.p.stdin.write(json.dumps(cmd) + "\n"); self.p.stdin.flush()
@@ -78,9 +97,11 @@ def main() -> int:
     ap.add_argument("--groups", default="pose")
     ap.add_argument("--rounds", type=int, default=2)
     ap.add_argument("--init", type=Path, help="JSON with initial pose/grade/lights")
+    ap.add_argument("--clay", type=Path, help="register geometry against an image-run clay pass instead of the gate")
     a = ap.parse_args()
     init = json.loads(a.init.read_text()) if a.init else {}
-    drv = Driver(a.screen)
+    drv = Driver(a.screen, "pass=clay&ui=0&actors=0" if a.clay else "")
+    clay_ref = clay_features(np.array(Image.open(a.clay).convert("L"))) if a.clay else None
     initial = {"pose": {"target": [0, 0, 0]}, "grade": {"lo": [0.96, 0.99, 1.04], "hi": [1.04, 1.0, 0.95], "gain": 1.0, "sat": 0.9, "shade": 0}, "lights": {"candles": 1.0}}
     for k, v in init.items():
         initial.setdefault(k, {}).update(v)
@@ -103,6 +124,11 @@ def main() -> int:
             return cache[key]
         out = tmp / f"c{count[0]}.png"; count[0] += 1
         drv.send({**build_cmd(v, initial), "out": str(out)})
+        if clay_ref is not None:
+            g = Image.open(out).convert("L")
+            cw = round(g.height * 1.5); g = g.crop(((g.width - cw) // 2, 0, (g.width - cw) // 2 + cw, g.height))
+            o, info = clay_score(clay_ref, clay_features(np.array(g)))
+            cache[key] = (o, info); return cache[key]
         rep, *_ = cs.evaluate_screen(a.screen, ref, out)
         s = rep["scene"]
         obj = 0.45 * s["sceneStructure"] + 0.20 * s["sceneColor"]

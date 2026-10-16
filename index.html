@@ -20,6 +20,7 @@
 <body>
   <canvas id="game"></canvas>
   <div id="fx-layer"></div>
+  <div id="stick" hidden><i></i></div>
 
   <div id="ui">
     <!-- ============ TITLE ============ -->
@@ -33,7 +34,7 @@
         <button class="menu-item" data-action="quit">QUIT</button>
         <div class="menu-marker"><i></i></div>
       </nav>
-      <div class="hint-small">CLICK OR PRESS ENTER</div>
+      <div class="hint-small"><span class="mouse-only">CLICK OR PRESS ENTER</span><span class="touch-only">TAP TO SELECT</span></div>
       <div class="footer left">A THREE.JS PROOF OF CONCEPT</div>
       <div class="footer right">v0.1</div>
     </section>
@@ -72,7 +73,7 @@
           <button class="act" data-row="6" data-action="back">BACK</button>
           <div class="act-marker"></div>
         </div>
-        <div class="help"><b>Enter</b> Select <b>Esc</b> Back <b>Arrows</b> Navigate</div>
+        <div class="help"><span class="mouse-only"><b>Enter</b> Select <b>Esc</b> Back <b>Arrows</b> Navigate</span><span class="touch-only">Tap a row to change it · drag sliders</span></div>
       </div>
     </section>
 
@@ -91,7 +92,8 @@
       <div class="orb es"><canvas id="orbEs" width="200" height="200"></canvas><div class="orb-val" id="esText">46 / 75</div></div>
       <div class="loot" id="loot" hidden><canvas id="keyIcon" width="64" height="64"></canvas><span>Rusted Reliquary Key</span></div>
       <div class="actionbar" id="actionbar"></div>
-      <div class="banner-msg" id="bannerMsg" hidden><div class="bm-title"></div><div class="bm-sub"></div></div>
+      <button class="menu-btn touch-only" id="menuBtn">MENU</button>
+      <div class="banner-msg" id="bannerMsg" hidden><div class="bm-title"></div><div class="bm-sub mouse-only"></div><div class="bm-actions touch-only"><button data-act="again">AGAIN</button><button data-act="title">TITLE</button></div></div>
     </section>
 
     <section id="quit" class="screen" hidden>

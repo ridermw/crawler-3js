@@ -22,6 +22,8 @@ The game ships **no image, model or audio files**. Every texture, normal and rou
 | Crimson Vial (+35 health) | **Q** |
 | Back to title | **Esc** |
 
+**Touch:** drag on the left of the screen for a virtual stick, tap the floor to walk there, and tap the action-bar slots to cast; abilities auto-aim at the nearest enemy. **MENU** returns to the title. Portrait and landscape are both supported.
+
 Hits restore essence. The Bone Warden casts crimson bolts and summons more thralls; below half health it fires three bolts at a time. Destroy it to win. **Enter** starts a new run after victory or defeat.
 
 Settings (master and ambient volume, window mode, camera drift and vignette) use draft-and-apply: **APPLY** saves them to `localStorage`, and **BACK** / **Esc** throws the draft away.
@@ -62,6 +64,8 @@ npm i --no-save playwright-core                    # uses the installed Google C
 node tools/fidelity/capture.mjs                    # three frozen 1920x1080 captures
 python3 tools/fidelity/compare-scene.py --all --print --write-comparison   # v2 gate, see docs/fidelity-gate.md
 node tools/fidelity/playtest.mjs                   # full interactive loop, fails on any console error
+node tools/fidelity/playtest-mobile.mjs            # touch controls on emulated phones, portrait and landscape
+tools/publish.sh && git push -f origin gh-pages     # publish the site files only
 python3 tools/fidelity/overlay.py artifacts/image-run/crypt/clay.png \
   artifacts/validation/tmp/ashen-reliquary-crypt-clay.png --out overlay.jpg
 ```

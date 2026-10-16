@@ -11,6 +11,8 @@ export const ABILITIES = [
   { key: 'Q', id: 'vial', name: 'Crimson Vial', cd: 20, cost: 0 },
 ];
 const MAX_HP = 100, MAX_ES = 75, WARDEN_HP = 260, THRALL_HP = 40;
+// Characters are authored at human scale; the crypt reads at a slightly heroic scale.
+const ACTOR_SCALE = 1.3;
 
 // ---------------------------------------------------------------- materials
 let M = null;
@@ -213,7 +215,7 @@ class Actor {
     this.J = J; this.kind = kind; this.hp = this.maxHp = hp; this.pos = J.root.position; this.facing = 0;
     this.anim = 'idle'; this.animT = 0; this.walk = 0; this.walkAmt = 0; this.stun = 0; this.hitT = 0; this.cd = 0; this.dead = false; this.deadT = 0;
     this.vel = new THREE.Vector3(); this.radius = kind === 'warden' ? 0.6 : 0.4;
-    scene.add(J.root);
+    J.root.scale.setScalar(ACTOR_SCALE); scene.add(J.root);
   }
   face(dx, dz, k = 1) { const target = Math.atan2(dx, dz); let d = target - this.facing; d = Math.atan2(Math.sin(d), Math.cos(d)); this.facing += d * k; }
   play(name) { this.anim = name; this.animT = 0; }
@@ -254,7 +256,7 @@ export class Combat {
 
   spawnEnemy(kind, x, z, seed) {
     const J = kind === 'warden' ? buildWarden() : buildThrall(seed);
-    if (kind === 'warden') J.root.scale.setScalar(0.98);
+    if (kind === 'warden') J.root.scale.setScalar(0.98 * ACTOR_SCALE);
     const e = new Actor(J, kind, kind === 'warden' ? WARDEN_HP : THRALL_HP, this.group);
     if (kind !== 'warden') addOutline(J);
     e.pos.set(x, 0, z); e.cd = 1 + this.r() * 1.5; e.castCd = 2.5; e.summonCd = 12;
@@ -615,7 +617,7 @@ export class Combat {
       J.shR.rotation.set(-0.6 - 1.9 * p, 0, -0.35 - 0.2 * p); J.elR.rotation.set(-0.6 + 0.4 * p, 0, 0); J.handR.rotation.set(0.7 + 0.4 * p, 0, 0.2);
       J.shL.rotation.set(-0.4 - 0.6 * p, 0, 0.4 + 0.4 * p); J.head.rotation.x = -0.2 * p; J.torso.rotation.x = -0.12 * p;
     } else if (e.anim === 'die') {
-      e.deadT += dt; const p = ease(t / 1.2); J.root.rotation.x = -0.4 * p; J.root.position.y = -1.3 * p; J.root.scale.setScalar(0.98 * (1 - 0.3 * p));
+      e.deadT += dt; const p = ease(t / 1.2); J.root.rotation.x = -0.4 * p; J.root.position.y = -1.3 * p; J.root.scale.setScalar(0.98 * ACTOR_SCALE * (1 - 0.3 * p));
     }
     if (e.hitT > 0) J.torso.rotation.x -= 0.1;
     J.root.position.y = e.dead ? J.root.position.y : 0;

@@ -22,16 +22,16 @@ body.frame-ref #ui { left: 50%; right: auto; width: min(100vw, calc(100vh * 1.5)
 .screen button, .screen .row, .screen .menu, .screen .panel { pointer-events: auto; }
 #fx-layer { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
 
-/* Centre-anchored elements (title block, settings panel, action bar) use calc(50% + (x - 768) * u) so they
-   sit where the mock puts them inside the centred 3:2 frame; corner HUD widgets and footers anchor to
-   the real screen edges. */
-.lockup { position: absolute; left: calc(50% + -638 * var(--u)); top: calc(428 * var(--u)); width: calc(520 * var(--u)); height: calc(150 * var(--u)); }
+/* Centre-anchored elements (title block, settings panel, action bar) use calc(50% + (x - 768) * u) and
+   calc(50% + (y - 512) * u) so they sit where the mock puts them inside the centred 3:2 frame; corner HUD
+   widgets and footers anchor to the nearest real screen edge. At 16:9 both are identical to the mock. */
+.lockup { position: absolute; left: calc(50% + -638 * var(--u)); top: calc(50% + -84 * var(--u)); width: calc(520 * var(--u)); height: calc(150 * var(--u)); }
 
 /* ---------------------------------------------------------------- title */
-.title-divider { position: absolute; left: calc(50% + -528 * var(--u)); top: calc(582 * var(--u)); width: calc(300 * var(--u)); height: calc(18 * var(--u)); }
-.subtitle { position: absolute; left: calc(50% + -628 * var(--u)); width: calc(500 * var(--u)); top: calc(616 * var(--u)); text-align: center;
+.title-divider { position: absolute; left: calc(50% + -528 * var(--u)); top: calc(50% + 70 * var(--u)); width: calc(300 * var(--u)); height: calc(18 * var(--u)); }
+.subtitle { position: absolute; left: calc(50% + -628 * var(--u)); width: calc(500 * var(--u)); top: calc(50% + 104 * var(--u)); text-align: center;
   font-size: calc(16.5 * var(--u)); letter-spacing: 0.2em; color: #b8b3a6; text-shadow: 0 1px 2px #000; }
-.menu { position: absolute; left: calc(50% + -528 * var(--u)); top: calc(672 * var(--u)); width: calc(320 * var(--u)); }
+.menu { position: absolute; left: calc(50% + -528 * var(--u)); top: calc(50% + 160 * var(--u)); width: calc(320 * var(--u)); }
 .menu-item { display: block; height: calc(50 * var(--u)); line-height: calc(40 * var(--u)); font-size: calc(21 * var(--u)); letter-spacing: 0.16em; color: #c9c3b4; text-shadow: 0 1px 3px #000; font-weight: 500; text-align: left; }
 .menu-item.sel { color: var(--gold); text-shadow: 0 0 calc(10 * var(--u)) rgba(214,154,69,0.35), 0 1px 3px #000; }
 .menu-item:hover { color: #efe4c8; }
@@ -39,14 +39,14 @@ body.frame-ref #ui { left: 50%; right: auto; width: min(100vw, calc(100vh * 1.5)
 .menu-marker::before { content: ''; position: absolute; left: 0; right: calc(8 * var(--u)); top: 50%; height: 1px; background: linear-gradient(90deg, rgba(214,154,69,0), #d9b06a); }
 .menu-marker i { position: absolute; right: calc(4 * var(--u)); top: 50%; width: calc(9 * var(--u)); height: calc(9 * var(--u)); transform: translate(0, -50%) rotate(45deg); border: 1px solid #e3be78; background: var(--night); box-shadow: 0 0 calc(6 * var(--u)) rgba(214,154,69,0.6); }
 .menu-marker::after { content: ''; position: absolute; right: calc(-3 * var(--u)); top: calc(-14 * var(--u)); bottom: calc(-14 * var(--u)); width: 1px; background: linear-gradient(180deg, rgba(214,154,69,0), rgba(214,154,69,0.7) 50%, rgba(214,154,69,0)); }
-.hint-small { position: absolute; left: calc(50% + -527 * var(--u)); top: calc(843 * var(--u)); font-size: calc(13 * var(--u)); letter-spacing: 0.16em; color: #8f8b80; }
+.hint-small { position: absolute; left: calc(50% + -527 * var(--u)); top: calc(50% + 331 * var(--u)); font-size: calc(13 * var(--u)); letter-spacing: 0.16em; color: #8f8b80; }
 .hint-small.center { left: 0; right: 0; text-align: center; top: 56%; }
-.footer { position: absolute; top: calc(963 * var(--u)); font-size: calc(12 * var(--u)); letter-spacing: 0.14em; color: #a29d90; }
+.footer { position: absolute; bottom: calc(46 * var(--u)); font-size: calc(12 * var(--u)); letter-spacing: 0.14em; color: #a29d90; }
 .footer.left { left: calc(104 * var(--u)); }
 .footer.right { right: calc(48 * var(--u)); letter-spacing: 0.04em; font-size: calc(13 * var(--u)); }
 
 /* ---------------------------------------------------------------- settings */
-.panel { position: absolute; left: calc(50% + -645 * var(--u)); top: calc(123 * var(--u)); width: calc(597 * var(--u)); height: calc(774 * var(--u));
+.panel { position: absolute; left: calc(50% + -645 * var(--u)); top: calc(50% + -389 * var(--u)); width: calc(597 * var(--u)); height: calc(774 * var(--u));
   background: rgba(9, 11, 14, 0.84); border: 1px solid rgba(138,106,53,0.55); border-top: 2px solid #9a7a42;
   box-shadow: inset 0 0 calc(30 * var(--u)) rgba(0,0,0,0.6), 0 0 calc(40 * var(--u)) rgba(0,0,0,0.5); }
 .panel h1 { position: absolute; left: 0; right: 0; top: calc(20 * var(--u)); margin: 0; text-align: center; font-family: var(--serif); font-weight: 500; font-size: calc(43 * var(--u)); letter-spacing: 0.08em; color: #ddd4bd; text-shadow: 0 2px 4px #000; }
@@ -100,15 +100,15 @@ body.frame-ref #ui { left: 50%; right: auto; width: min(100vw, calc(100vh * 1.5)
 .boss-bar span { position: absolute; inset: 0; font-size: calc(11.5 * var(--u)); line-height: calc(15 * var(--u)); color: #e6d8c4; text-shadow: 0 1px 2px #000; }
 .minimap { position: absolute; right: calc(29 * var(--u)); top: calc(13 * var(--u)); width: calc(221 * var(--u)); height: calc(233 * var(--u)); border: 1px solid #5b5650; box-shadow: 0 0 0 2px #121417, inset 0 0 0 1px #2a2826; background: rgba(11,13,16,0.6); }
 .minimap canvas { width: 100%; height: 100%; display: block; }
-.orb { position: absolute; top: calc(787 * var(--u)); width: calc(162 * var(--u)); height: calc(162 * var(--u)); }
+.orb { position: absolute; bottom: calc(75 * var(--u)); width: calc(162 * var(--u)); height: calc(162 * var(--u)); }
 .orb.hp { left: calc(38 * var(--u)); }
 .orb.es { right: calc(48 * var(--u)); }
 .orb canvas { width: 100%; height: 100%; }
 .orb-val { position: absolute; left: -50%; right: -50%; top: calc(172 * var(--u)); text-align: center; font-size: calc(16 * var(--u)); color: #d8cfb7; text-shadow: 0 1px 2px #000; }
-.loot { position: absolute; right: calc(6 * var(--u)); top: calc(707 * var(--u)); width: calc(240 * var(--u)); height: calc(46 * var(--u)); display: flex; align-items: center; gap: calc(10 * var(--u)); padding-left: calc(10 * var(--u));
+.loot { position: absolute; right: calc(6 * var(--u)); bottom: calc(271 * var(--u)); width: calc(240 * var(--u)); height: calc(46 * var(--u)); display: flex; align-items: center; gap: calc(10 * var(--u)); padding-left: calc(10 * var(--u));
   background: rgba(11,13,16,0.86); border: 1px solid #5f4b2a; font-size: calc(15 * var(--u)); color: #d8cfb7; }
 .loot canvas { width: calc(26 * var(--u)); height: calc(26 * var(--u)); }
-.actionbar { position: absolute; left: calc(50% + -273 * var(--u)); top: calc(858 * var(--u)); width: calc(551 * var(--u)); height: calc(136 * var(--u));
+.actionbar { position: absolute; left: calc(50% + -273 * var(--u)); bottom: calc(30 * var(--u)); width: calc(551 * var(--u)); height: calc(136 * var(--u));
   background: rgba(16,17,20,0.92); border: 1px solid #3b3833; box-shadow: inset 0 0 0 calc(4 * var(--u)) #1c1d20, inset 0 0 0 calc(5 * var(--u)) #34302a, 0 0 0 1px #000; pointer-events: auto; }
 .slot { position: absolute; top: calc(6 * var(--u)); width: calc(88 * var(--u)); height: calc(88 * var(--u)); border: 1px solid #45413b; box-shadow: 0 0 0 1px #000; cursor: pointer; }
 .slot canvas { width: 100%; height: 100%; display: block; }
@@ -124,3 +124,26 @@ body.frame-ref #ui { left: 50%; right: auto; width: min(100vw, calc(100vh * 1.5)
 .bm-sub { white-space: pre; margin-top: calc(12 * var(--u)); font-size: calc(16 * var(--u)); letter-spacing: 0.16em; color: #b8b3a6; text-shadow: 0 1px 3px #000; }
 .quit-text { position: absolute; left: 0; right: 0; top: 46%; text-align: center; font-family: var(--serif); font-size: calc(34 * var(--u)); color: #cfc6ae; }
 #quit { background: #050608; pointer-events: auto; }
+
+/* ---------------------------------------------------------------- touch */
+.touch-only { display: none; }
+body.touch .touch-only { display: block; }
+body.touch .mouse-only { display: none; }
+html, body { touch-action: none; overscroll-behavior: none; }
+@media (pointer: coarse) and (orientation: landscape) { :root { --u: max(min(calc(100vh / 1024), calc(100vw / 1536)), calc(100vh / 800)); } }
+@media (orientation: portrait) {
+  :root { --u: calc(100vw / 760); }
+  .actionbar { bottom: calc(250 * var(--u)); }
+  .loot { bottom: calc(430 * var(--u)); }
+  .lockup, .title-divider, .subtitle, .menu, .hint-small { margin-left: calc(378 * var(--u)); }
+  .boss { top: calc(330 * var(--u)); width: calc(560 * var(--u)); }
+  .panel { left: calc(50% - 298 * var(--u)); }
+}
+#stick { position: fixed; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 1px solid rgba(214,170,100,0.45); background: rgba(11,13,16,0.35); pointer-events: none; z-index: 5; }
+#stick i { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; background: rgba(214,154,69,0.35); border: 1px solid #d9b06a; }
+.menu-btn { position: absolute; right: calc(29 * var(--u)); top: calc(262 * var(--u)); width: calc(221 * var(--u)); min-height: 36px; font-size: max(12px, calc(15 * var(--u))); letter-spacing: 0.12em; color: #cfc8b6; background: rgba(11,13,16,0.75); border: 1px solid #5b5650; pointer-events: auto; }
+.banner-msg { pointer-events: auto; }
+.banner-msg .bm-actions { margin-top: 18px; display: flex; gap: 18px; justify-content: center; }
+.banner-msg .bm-actions button { min-width: 140px; min-height: 44px; font-size: 15px; letter-spacing: 0.14em; color: #e3c286; border: 1px solid rgba(138,106,53,0.8); background: rgba(11,13,16,0.8); }
+body.touch .slot { touch-action: none; }
+body.touch .banner-msg .bm-actions { display: flex; }
