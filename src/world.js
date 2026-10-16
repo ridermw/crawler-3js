@@ -82,7 +82,7 @@ export class World {
   }
 
   materials() {
-    const floor = P.stoneSurface(11, { base: [104, 106, 110], contrast: 1.25, normal: 7 });
+    const floor = P.stoneSurface(11, { base: [108, 106, 104], contrast: 1.3, normal: 7, warm: 0.2 });
     const wall = P.stoneSurface(23, { base: [92, 94, 98], contrast: 1.2, cracks: 34, warm: 0.15, normal: 7 });
     const relief = P.gothicRelief(5, { base: [104, 104, 106] });
     const reliefAltar = P.gothicRelief(9, { base: [118, 112, 104], emblem: true });
@@ -191,21 +191,24 @@ export class World {
     const r = this.r;
     const inGrate = (x, z, pad) => this.grates.some(([gx, gz]) => Math.abs(x - gx) < 0.85 + pad && Math.abs(z - gz) < 0.85 + pad);
     const inRoom = (x, z) => WALK.some(w => x > w.x0 - 0.6 && x < w.x1 + 0.6 && z > w.z0 - 1.6 && z < w.z1 + 0.6);
+    // Irregular flagstones: rows of slabs with varied widths; some slabs split across either
+    // axis so the seams never settle into a regular brick bond.
     let z = -9.4;
     while (z < 13.5) {
-      const d = P.range(r, 0.75, 1.15);
-      let x = -15 + r() * 0.6;
+      const d = P.range(r, 0.85, 1.35);
+      let x = -15 + r() * 0.9;
       while (x < 15) {
-        const w = P.range(r, 0.7, 1.45);
+        const w = P.range(r, 0.8, 1.9);
         const cx = x + w / 2, cz = z + d / 2;
         if (!inGrate(cx, cz, 0)) {
           const inside = inRoom(cx, cz);
-          const tint = inside ? P.range(r, 0.78, 1.12) : P.range(r, 0.5, 0.8);
-          const split = r() < 0.18;
-          const parts = split ? [[cz - d / 4, d / 2], [cz + d / 4, d / 2]] : [[cz, d]];
-          for (const [pz, pd] of parts) {
-            const settle = inside ? (r() - 0.5) * 0.03 : (r() - 0.5) * 0.12;
-            this.slab(w - 0.06, 0.2, pd - 0.06, cx, -0.1 + settle, pz, { key: 'floor', rx: (r() - 0.5) * 0.02, rz: (r() - 0.5) * 0.02, tint, bevel: 0.035, uv: 2.0 });
+          const tint = inside ? P.range(r, 0.62, 1.18) : P.range(r, 0.45, 0.8);
+          const sr = r(), f = P.range(r, 0.35, 0.65);
+          const parts = sr < 0.14 ? [[cx - w / 2 + w * f / 2, w * f, cz, d], [cx + w * f / 2, w * (1 - f), cz, d]]
+            : sr < 0.3 ? [[cx, w, cz - d / 2 + d * f / 2, d * f], [cx, w, cz + d * f / 2, d * (1 - f)]] : [[cx, w, cz, d]];
+          for (const [px, pw, pz, pd] of parts) {
+            const settle = inside ? (r() - 0.5) * 0.04 : (r() - 0.5) * 0.12;
+            this.slab(pw - 0.07, 0.2, pd - 0.07, px, -0.1 + settle, pz, { key: 'floor', rx: (r() - 0.5) * 0.025, rz: (r() - 0.5) * 0.025, tint: tint * P.range(r, 0.92, 1.08), bevel: 0.045, uv: 2.0 });
           }
         }
         x += w;

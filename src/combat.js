@@ -19,12 +19,12 @@ function mats() {
   const steel = P.steelSurface(101), bone = P.boneSurface(102), robe = P.clothSurface(103, [30, 24, 26]), cape = P.clothSurface(104, [22, 22, 26]);
   const std = o => new THREE.MeshStandardMaterial({ roughness: 0.8, ...o });
   M = {
-    armor: std({ ...steel, color: '#9aa0a8', metalness: 0.75, roughness: 0.42 }),
-    armorDark: std({ ...steel, color: '#5a5f66', metalness: 0.7, roughness: 0.5 }),
+    armor: std({ ...steel, color: '#a4a9b0', metalness: 0.35, roughness: 0.45 }),
+    armorDark: std({ ...steel, color: '#6a6f76', metalness: 0.3, roughness: 0.55 }),
     leather: std({ color: '#3b2b20', roughness: 0.85 }),
     cloth: std({ ...cape, color: '#a0a0a8', side: THREE.DoubleSide }),
-    brass: std({ color: '#9a7638', metalness: 0.85, roughness: 0.38 }),
-    blade: std({ color: '#d8dde2', metalness: 0.9, roughness: 0.22 }),
+    brass: std({ color: '#a8823e', metalness: 0.45, roughness: 0.4 }),
+    blade: std({ color: '#dfe3e8', metalness: 0.5, roughness: 0.25, emissive: '#2a2a2a' }),
     bone: std({ ...bone, color: '#d6cbb0', roughness: 0.7 }),
     boneDark: std({ ...bone, color: '#8c8270', roughness: 0.8 }),
     robe: std({ ...robe, color: '#b0a0a4', side: THREE.DoubleSide }),
@@ -32,7 +32,7 @@ function mats() {
     rust: std({ color: '#5a4030', metalness: 0.5, roughness: 0.7 }),
     eye: new THREE.MeshBasicMaterial({ color: '#ff4a30', toneMapped: false }),
     gem: new THREE.MeshBasicMaterial({ color: '#ff3a2a', toneMapped: false }),
-    outline: new THREE.MeshBasicMaterial({ color: '#ffffff', side: THREE.BackSide, transparent: true, opacity: 0.5, depthWrite: false }),
+    outline: new THREE.MeshBasicMaterial({ color: '#ffffff', side: THREE.BackSide, transparent: true, opacity: 0.22, depthWrite: false }),
   };
   return M;
 }
@@ -187,7 +187,7 @@ function addOutline(J) {
   const group = [];
   J.root.traverse(o => {
     if (o.isMesh && !o.userData.isOutline && o.material !== mats().eye) {
-      const ol = new THREE.Mesh(o.geometry, mats().outline); ol.userData.isOutline = true; ol.scale.setScalar(1.12); ol.castShadow = false; ol.visible = false;
+      const ol = new THREE.Mesh(o.geometry, mats().outline); ol.userData.isOutline = true; ol.scale.setScalar(1.08); ol.castShadow = false; ol.visible = false;
       o.add(ol); group.push(ol);
     }
   });
@@ -235,7 +235,7 @@ export class Combat {
 
   buildFx() {
     const add = (mesh) => { this.group.add(mesh); return mesh; };
-    this.arc = add(new THREE.Mesh(arcGeometry(0.75, 2.05, -1.2, 1.25), new THREE.MeshBasicMaterial({ map: this.tex.arc, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, color: '#ffe7b0' })));
+    this.arc = add(new THREE.Mesh(arcGeometry(1.45, 1.95, -1.25, 1.3), new THREE.MeshBasicMaterial({ map: this.tex.arc, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, color: '#ffe7b0' })));
     this.arc.visible = false;
     this.marker = add(new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.95), new THREE.MeshBasicMaterial({ map: this.tex.marker, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, color: '#ffd48a' })));
     this.marker.rotation.x = -Math.PI / 2; this.marker.visible = false;
@@ -254,7 +254,7 @@ export class Combat {
 
   spawnEnemy(kind, x, z, seed) {
     const J = kind === 'warden' ? buildWarden() : buildThrall(seed);
-    if (kind === 'warden') J.root.scale.setScalar(1.12);
+    if (kind === 'warden') J.root.scale.setScalar(0.98);
     const e = new Actor(J, kind, kind === 'warden' ? WARDEN_HP : THRALL_HP, this.group);
     if (kind !== 'warden') addOutline(J);
     e.pos.set(x, 0, z); e.cd = 1 + this.r() * 1.5; e.castCd = 2.5; e.summonCd = 12;
@@ -615,7 +615,7 @@ export class Combat {
       J.shR.rotation.set(-0.6 - 1.9 * p, 0, -0.35 - 0.2 * p); J.elR.rotation.set(-0.6 + 0.4 * p, 0, 0); J.handR.rotation.set(0.7 + 0.4 * p, 0, 0.2);
       J.shL.rotation.set(-0.4 - 0.6 * p, 0, 0.4 + 0.4 * p); J.head.rotation.x = -0.2 * p; J.torso.rotation.x = -0.12 * p;
     } else if (e.anim === 'die') {
-      e.deadT += dt; const p = ease(t / 1.2); J.root.rotation.x = -0.4 * p; J.root.position.y = -1.3 * p; J.root.scale.setScalar(1.12 * (1 - 0.3 * p));
+      e.deadT += dt; const p = ease(t / 1.2); J.root.rotation.x = -0.4 * p; J.root.position.y = -1.3 * p; J.root.scale.setScalar(0.98 * (1 - 0.3 * p));
     }
     if (e.hitT > 0) J.torso.rotation.x -= 0.1;
     J.root.position.y = e.dead ? J.root.position.y : 0;
