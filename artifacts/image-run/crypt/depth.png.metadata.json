@@ -1,0 +1,36 @@
+{
+  "rendered_at": "2026-10-16T22:47:44.715476+00:00",
+  "size": "3504x2336",
+  "quality": "high",
+  "deployment": "gpt-image-2.5-sunburst",
+  "model_name": "gpt-image-2.5-sunburst",
+  "model_version": "default",
+  "account": "mwilliams-imggen-eus2",
+  "prompt_char_count": 533,
+  "prompt": "Intended result: a depth pass of the game level, used as a geometry reference for building the 3D scene. Edit Image 1, the locked target, into a greyscale depth map of the entire scene from the same camera: near surfaces are white, far surfaces are black, with smooth linear gradation in between and no lighting, texture or fog. Every boundary sits on the corresponding edge in Image 1. Keep the camera, lens, framing, and every silhouette, position and scale. Do not add, remove, move or reshape anything. No text, labels or legend.",
+  "operation": "edit",
+  "source_image": "clean.png",
+  "reference_images": [],
+  "mask": null,
+  "inputs": [
+    {
+      "role": "source",
+      "path": "artifacts/image-run/crypt/clean.png",
+      "sha256": "d8650e52b84718e737a4ab210b90725619f5e18543cce0ea33dc333e7ecdac06"
+    }
+  ],
+  "output_format": "png",
+  "usage": {
+    "input_tokens": 1673,
+    "input_tokens_details": {
+      "image_tokens": 1536,
+      "text_tokens": 137
+    },
+    "output_tokens": 3912,
+    "output_tokens_details": {
+      "image_tokens": 3912,
+      "text_tokens": 0
+    },
+    "total_tokens": 5585
+  }
+}

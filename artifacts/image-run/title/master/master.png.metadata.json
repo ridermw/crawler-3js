@@ -1,0 +1,36 @@
+{
+  "rendered_at": "2026-10-16T22:38:31.009133+00:00",
+  "size": "3504x2336",
+  "quality": "high",
+  "deployment": "gpt-image-2.5-sunburst",
+  "model_name": "gpt-image-2.5-sunburst",
+  "model_version": "default",
+  "account": "mwilliams-imggen-eus2",
+  "prompt_char_count": 1151,
+  "prompt": "Intended result: a high-resolution game screenshot master, the locked target for building a matching real-time 3D game asset scene. Re-render Image 1 at a higher resolution as a detail pass, not a new design. Keep the camera, framing, crop and composition exactly. Every major object keeps its position, size and silhouette: the candle-covered altar and tabernacle at the upper centre, the two broken square pillars with torn black banners, the hanging chains, the short ruined walls and moonlit openings, the iron floor grates, the irregular cracked flagstones, bone piles and sparse rubble, and the dark open foreground. Keep the title interface unchanged: THE ASHEN / RELIQUARY lockup, brass divider, subtitle, the three menu items with the gold marker, the click hint, and both footers. Do not add, remove, move, resize, restyle, straighten, crop or extend anything. Keep the exact colours, the dim night exposure, the cold blue moonlight and the warm amber candlelight, every shadow and the fog. Keep all interface text letter for letter. Add only fine surface detail the image already implies: stone grain, mortar, cracks, wax drips, metal wear.",
+  "operation": "edit",
+  "source_image": "target.png",
+  "reference_images": [],
+  "mask": null,
+  "inputs": [
+    {
+      "role": "source",
+      "path": "artifacts/image-run/title/target.png",
+      "sha256": "8f801a0501101fbd7bd31a7872745bc7334dfb79016ee31511f68bcd8d0b7ef6"
+    }
+  ],
+  "output_format": "png",
+  "usage": {
+    "input_tokens": 1801,
+    "input_tokens_details": {
+      "image_tokens": 1536,
+      "text_tokens": 265
+    },
+    "output_tokens": 3912,
+    "output_tokens_details": {
+      "image_tokens": 3912,
+      "text_tokens": 0
+    },
+    "total_tokens": 5713
+  }
+}

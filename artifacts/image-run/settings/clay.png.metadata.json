@@ -1,0 +1,36 @@
+{
+  "rendered_at": "2026-10-16T22:46:37.803260+00:00",
+  "size": "3504x2336",
+  "quality": "high",
+  "deployment": "gpt-image-2.5-sunburst",
+  "model_name": "gpt-image-2.5-sunburst",
+  "model_version": "default",
+  "account": "mwilliams-imggen-eus2",
+  "prompt_char_count": 693,
+  "prompt": "Intended result: a clay render of the game level, used as a geometry reference for building the 3D scene. Edit Image 1, the locked target, into the same scene rendered as untextured geometry: every surface is one uniform matte white clay material, with no texture, colour, candle glow, moonlight tint, fog or emissive light. Use soft even white ambient light with gentle ambient occlusion so the form of every flagstone, block, pillar, step, grate and prop reads clearly; no cast shadows. Every boundary sits on the corresponding edge in Image 1. Keep the camera, lens, framing, and every silhouette, position and scale. Do not add, remove, move or reshape anything. No text, labels or legend.",
+  "operation": "edit",
+  "source_image": "clean.png",
+  "reference_images": [],
+  "mask": null,
+  "inputs": [
+    {
+      "role": "source",
+      "path": "artifacts/image-run/settings/clean.png",
+      "sha256": "875146d1a92ebe582ab24813b113a30aa56c004ba7286876a0c76f9bcd190d3d"
+    }
+  ],
+  "output_format": "png",
+  "usage": {
+    "input_tokens": 1707,
+    "input_tokens_details": {
+      "image_tokens": 1536,
+      "text_tokens": 171
+    },
+    "output_tokens": 3912,
+    "output_tokens_details": {
+      "image_tokens": 3912,
+      "text_tokens": 0
+    },
+    "total_tokens": 5619
+  }
+}

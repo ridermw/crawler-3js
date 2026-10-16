@@ -1,0 +1,52 @@
+{
+  "method": "per-channel quantile mapping, 257 quantiles, fitted on the master scaled to the target size",
+  "target": "target.png",
+  "master": "master.png",
+  "output": "master-tone.png",
+  "lut_samples": {
+    "R": [
+      0,
+      15,
+      28,
+      42,
+      59,
+      88,
+      130,
+      185,
+      254
+    ],
+    "G": [
+      0,
+      16,
+      30,
+      45,
+      68,
+      127,
+      165,
+      210,
+      254
+    ],
+    "B": [
+      0,
+      17,
+      29,
+      48,
+      88,
+      133,
+      174,
+      215,
+      254
+    ]
+  },
+  "lut_sample_inputs": [
+    0,
+    32,
+    64,
+    96,
+    128,
+    160,
+    192,
+    224,
+    255
+  ]
+}

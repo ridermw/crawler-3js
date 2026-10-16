@@ -1,0 +1,325 @@
+{
+  "size": [
+    1536,
+    1024
+  ],
+  "returned_size": [
+    3504,
+    2336
+  ],
+  "resized_to_target": true,
+  "size_match": true,
+  "tolerance_px": 2,
+  "edge_percentile": 90,
+  "grid": [
+    12,
+    8
+  ],
+  "edge_agreement_pct": 62.66,
+  "worst_tile_pct": 0.0,
+  "worst_tile_box": [
+    0,
+    128,
+    128,
+    128
+  ],
+  "shift_px": [
+    -1,
+    1
+  ],
+  "global_peak_ratio": 0.12,
+  "global_measured": true,
+  "local_tiles_measured": 12,
+  "local_tiles_total": 24,
+  "max_local_shift_px": 2,
+  "max_local_shift_box": [
+    1024,
+    768,
+    256,
+    256
+  ],
+  "local_tiles": [
+    {
+      "box": [
+        768,
+        0,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        -1
+      ],
+      "peak_ratio": 0.14
+    },
+    {
+      "box": [
+        1024,
+        0,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        -1
+      ],
+      "peak_ratio": 0.24
+    },
+    {
+      "box": [
+        1280,
+        0,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        -1
+      ],
+      "peak_ratio": 0.27
+    },
+    {
+      "box": [
+        768,
+        256,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        0
+      ],
+      "peak_ratio": 0.24
+    },
+    {
+      "box": [
+        1024,
+        256,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        0
+      ],
+      "peak_ratio": 0.11
+    },
+    {
+      "box": [
+        1280,
+        256,
+        256,
+        256
+      ],
+      "shift_px": [
+        0,
+        0
+      ],
+      "peak_ratio": 0.4
+    },
+    {
+      "box": [
+        768,
+        512,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        1
+      ],
+      "peak_ratio": 0.2
+    },
+    {
+      "box": [
+        1024,
+        512,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        1
+      ],
+      "peak_ratio": 0.17
+    },
+    {
+      "box": [
+        0,
+        768,
+        256,
+        256
+      ],
+      "shift_px": [
+        0,
+        1
+      ],
+      "peak_ratio": 0.39
+    },
+    {
+      "box": [
+        768,
+        768,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        1
+      ],
+      "peak_ratio": 0.25
+    },
+    {
+      "box": [
+        1024,
+        768,
+        256,
+        256
+      ],
+      "shift_px": [
+        -2,
+        1
+      ],
+      "peak_ratio": 0.3
+    },
+    {
+      "box": [
+        1280,
+        768,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        1
+      ],
+      "peak_ratio": 0.32
+    }
+  ],
+  "unmeasured_tiles": [
+    {
+      "box": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.58
+    },
+    {
+      "box": [
+        256,
+        0,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.84
+    },
+    {
+      "box": [
+        512,
+        0,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.91
+    },
+    {
+      "box": [
+        0,
+        256,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.85
+    },
+    {
+      "box": [
+        256,
+        256,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.8
+    },
+    {
+      "box": [
+        512,
+        256,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.89
+    },
+    {
+      "box": [
+        0,
+        512,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.92
+    },
+    {
+      "box": [
+        256,
+        512,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.79
+    },
+    {
+      "box": [
+        512,
+        512,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.81
+    },
+    {
+      "box": [
+        1280,
+        512,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.55
+    },
+    {
+      "box": [
+        256,
+        768,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.65
+    },
+    {
+      "box": [
+        512,
+        768,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.93
+    }
+  ],
+  "max_local_shift_limit_px": 2.0,
+  "min_measured_tiles": 18,
+  "verdict": "indeterminate",
+  "pass": false
+}

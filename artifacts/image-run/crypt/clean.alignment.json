@@ -1,0 +1,340 @@
+{
+  "size": [
+    1536,
+    1024
+  ],
+  "returned_size": [
+    3504,
+    2336
+  ],
+  "resized_to_target": true,
+  "size_match": true,
+  "tolerance_px": 2,
+  "edge_percentile": 90,
+  "grid": [
+    12,
+    8
+  ],
+  "edge_agreement_pct": 61.88,
+  "worst_tile_pct": 0.0,
+  "worst_tile_box": [
+    0,
+    0,
+    128,
+    128
+  ],
+  "shift_px": [
+    -1,
+    -1
+  ],
+  "global_peak_ratio": 0.26,
+  "global_measured": true,
+  "local_tiles_measured": 17,
+  "local_tiles_total": 24,
+  "max_local_shift_px": 3,
+  "max_local_shift_box": [
+    512,
+    512,
+    256,
+    256
+  ],
+  "local_tiles": [
+    {
+      "box": [
+        256,
+        0,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        -1
+      ],
+      "peak_ratio": 0.14
+    },
+    {
+      "box": [
+        512,
+        0,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        -1
+      ],
+      "peak_ratio": 0.18
+    },
+    {
+      "box": [
+        768,
+        0,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        -1
+      ],
+      "peak_ratio": 0.14
+    },
+    {
+      "box": [
+        1024,
+        0,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        -1
+      ],
+      "peak_ratio": 0.2
+    },
+    {
+      "box": [
+        0,
+        256,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        0
+      ],
+      "peak_ratio": 0.15
+    },
+    {
+      "box": [
+        256,
+        256,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        -1
+      ],
+      "peak_ratio": 0.32
+    },
+    {
+      "box": [
+        512,
+        256,
+        256,
+        256
+      ],
+      "shift_px": [
+        -2,
+        -1
+      ],
+      "peak_ratio": 0.3
+    },
+    {
+      "box": [
+        768,
+        256,
+        256,
+        256
+      ],
+      "shift_px": [
+        -2,
+        -1
+      ],
+      "peak_ratio": 0.19
+    },
+    {
+      "box": [
+        1024,
+        256,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        0
+      ],
+      "peak_ratio": 0.2
+    },
+    {
+      "box": [
+        1280,
+        256,
+        256,
+        256
+      ],
+      "shift_px": [
+        -2,
+        -1
+      ],
+      "peak_ratio": 0.2
+    },
+    {
+      "box": [
+        0,
+        512,
+        256,
+        256
+      ],
+      "shift_px": [
+        -1,
+        0
+      ],
+      "peak_ratio": 0.22
+    },
+    {
+      "box": [
+        256,
+        512,
+        256,
+        256
+      ],
+      "shift_px": [
+        -2,
+        0
+      ],
+      "peak_ratio": 0.2
+    },
+    {
+      "box": [
+        512,
+        512,
+        256,
+        256
+      ],
+      "shift_px": [
+        -3,
+        0
+      ],
+      "peak_ratio": 0.2
+    },
+    {
+      "box": [
+        1024,
+        512,
+        256,
+        256
+      ],
+      "shift_px": [
+        -2,
+        1
+      ],
+      "peak_ratio": 0.2
+    },
+    {
+      "box": [
+        1280,
+        512,
+        256,
+        256
+      ],
+      "shift_px": [
+        -2,
+        1
+      ],
+      "peak_ratio": 0.27
+    },
+    {
+      "box": [
+        256,
+        768,
+        256,
+        256
+      ],
+      "shift_px": [
+        -3,
+        1
+      ],
+      "peak_ratio": 0.28
+    },
+    {
+      "box": [
+        1024,
+        768,
+        256,
+        256
+      ],
+      "shift_px": [
+        -2,
+        1
+      ],
+      "peak_ratio": 0.15
+    }
+  ],
+  "unmeasured_tiles": [
+    {
+      "box": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.97
+    },
+    {
+      "box": [
+        1280,
+        0,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.98
+    },
+    {
+      "box": [
+        768,
+        512,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.91
+    },
+    {
+      "box": [
+        0,
+        768,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.83
+    },
+    {
+      "box": [
+        512,
+        768,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.9
+    },
+    {
+      "box": [
+        768,
+        768,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.87
+    },
+    {
+      "box": [
+        1280,
+        768,
+        256,
+        256
+      ],
+      "reason": "ambiguous peak",
+      "peak_ratio": 0.98
+    }
+  ],
+  "max_local_shift_limit_px": 2.0,
+  "min_measured_tiles": 18,
+  "verdict": "fail",
+  "pass": false
+}

@@ -2,3 +2,6 @@
 node_modules/
 # scratch captures; curated validation evidence is committed under artifacts/validation/
 artifacts/validation/tmp/
+# image-run reference renders are large; prompts, checks and call logs are committed
+artifacts/image-run/**/*.png
+!artifacts/image-run/*/target.png

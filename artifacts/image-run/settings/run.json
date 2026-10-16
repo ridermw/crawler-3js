@@ -1,0 +1,39 @@
+{
+  "schema": "image-run/1",
+  "name": "Ashen Reliquary \u2014 settings",
+  "target": {
+    "image": "target.png",
+    "prompt": "target.txt",
+    "metadata": "target.png.metadata.json"
+  },
+  "objects": "objects.json",
+  "master_dir": "master",
+  "masters": [
+    {
+      "id": "master-4k",
+      "name": "3504x2336 master",
+      "file": "master"
+    }
+  ],
+  "passes": [
+    {
+      "id": "noui",
+      "name": "Clean plate (UI removed)"
+    },
+    {
+      "id": "clay",
+      "name": "Clay (white, shadowless)"
+    },
+    {
+      "id": "delit",
+      "name": "De-lit albedo"
+    },
+    {
+      "id": "depth",
+      "name": "Depth"
+    }
+  ],
+  "base": "master/master-tone.png",
+  "scale": 2.28125,
+  "alignment_scale": 2.28125
+}

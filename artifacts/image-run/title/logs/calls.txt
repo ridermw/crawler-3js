@@ -1,0 +1,6 @@
+2026-10-16T22:37:37Z call master/master.png attempt 1 prompt=abb91089430b88256d3136ecf2558ce4a0145be09082e2714b521f2a4e86d373 inputs=target.png:8f801a0501101fbd7bd31a7872745bc7334dfb79016ee31511f68bcd8d0b7ef6
+2026-10-16T22:38:31Z done master/master.png attempt 1 exit 0 54s
+2026-10-16T22:42:34Z call clean.png attempt 1 prompt=05cd5c8171f1ac2fd9517df0b1e3d30852e112249d898cbe69247c5425f5b829 inputs=master/master-tone.png:4eccec848b40df9e23807c9f6ac68a915ba172bdb1506ea4f30fedb84868f5b7
+2026-10-16T22:43:27Z done clean.png attempt 1 exit 0 53s
+2026-10-16T22:45:34Z call clay.png attempt 1 prompt=795423336e478c670ac1b608508d719b77416a74ccf9a49bbacff5892d8c34cf inputs=clean.png:85e1077ffa803f08e9554b8cce123a4bdef3cf5b95a66c64a2edafc17d919c1f
+2026-10-16T22:46:38Z done clay.png attempt 1 exit 0 64s

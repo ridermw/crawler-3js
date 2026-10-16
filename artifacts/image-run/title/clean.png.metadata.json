@@ -1,0 +1,36 @@
+{
+  "rendered_at": "2026-10-16T22:43:27.440658+00:00",
+  "size": "3504x2336",
+  "quality": "high",
+  "deployment": "gpt-image-2.5-sunburst",
+  "model_name": "gpt-image-2.5-sunburst",
+  "model_version": "default",
+  "account": "mwilliams-imggen-eus2",
+  "prompt_char_count": 709,
+  "prompt": "Intended result: a clean environment plate of the game level, used as the reference for building the 3D room. Edit Image 1, the locked target, into the same scene with every interface element removed: the THE ASHEN RELIQUARY title, the divider, subtitle, menu items, marker, click hint and both footers. Fill every uncovered area with the flagstones, grates, rubble and fog that continue behind them. Keep the exact lighting, exposure, vignette and colours of Image 1. Every boundary sits on the corresponding edge in Image 1. Keep the camera, lens, framing, and every silhouette, position and scale of the architecture. Do not add, remove, move or reshape any architecture or prop. No text, labels or legend.",
+  "operation": "edit",
+  "source_image": "master/master-tone.png",
+  "reference_images": [],
+  "mask": null,
+  "inputs": [
+    {
+      "role": "source",
+      "path": "artifacts/image-run/title/master/master-tone.png",
+      "sha256": "4eccec848b40df9e23807c9f6ac68a915ba172bdb1506ea4f30fedb84868f5b7"
+    }
+  ],
+  "output_format": "png",
+  "usage": {
+    "input_tokens": 1712,
+    "input_tokens_details": {
+      "image_tokens": 1536,
+      "text_tokens": 176
+    },
+    "output_tokens": 3912,
+    "output_tokens_details": {
+      "image_tokens": 3912,
+      "text_tokens": 0
+    },
+    "total_tokens": 5624
+  }
+}
