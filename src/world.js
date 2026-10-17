@@ -43,7 +43,7 @@ function prep(geo, { pos = [0, 0, 0], rot = [0, 0, 0], scale = [1, 1, 1], uv = 0
 class Buckets {
   constructor() { this.m = new Map(); }
   // dz shifts everything added while it is set; the sanctum block is authored at z=0 and moved into place.
-  add(key, geo) { if (this.dz) geo.translate(0, 0, this.dz); if (!this.m.has(key)) this.m.set(key, []); this.m.get(key).push(geo); }
+  add(key, geo) { if (this.dz) geo.translate(0, 0, this.dz); if (this.xf) { geo.applyMatrix4(this.xf); } if (!this.m.has(key)) this.m.set(key, []); this.m.get(key).push(geo); }
   build(parent, mats, { cast = true } = {}) {
     for (const [key, list] of this.m) {
       const mesh = new THREE.Mesh(mergeGeometries(list, false), mats[key]);
@@ -83,23 +83,24 @@ export const LAYOUT = {
   pierLZ: 6.9,
   pierBX: 9,
   pierBZ: 12,
-  outerX: 14.8,
+  outerX: 14.5,
   style: 2,  // 2: reference balustrades; 1: earlier stepped side masses
   bCurbW: 0.637,
   bCurbH: 0.45,
   wallT: 0.95,
-  wallH: 1.2,
-  pierW: 1.25,
+  wallH: 1.35,
+  pierW: 1.15,
   pierH: 1,
   balU0: -5.1,
   balU1: 1.8,
-  balL0: 6,
+  balL0: 6.6,
   balL1: 13.8,
   mass: 0,  // depth-baked side masses (src/heightfield.js): scored worse than the measured build
   hScale: 1,
   course: 0.35,
   sideRange: 1,
-  outerH: 3.7,
+  outerH: 4.2,
+  sideLen: 9,
 };
 const WALK = [
   { x0: -7.2, x1: 7.2, z0: -5.4, z1: 13.5 },    // walkway between the side ranges
@@ -619,13 +620,33 @@ export class World {
       this.debris(X(xc + len * 0.6), rz + 0.9, 0.9, 6);
     }
   }
+  // Build with a local frame: geometry added inside fn is rotated by ry about the y axis and moved
+  // to (x, z). Only meshes are transformed (obstacles and candles are not).
+  frame(x, z, ry, fn) {
+    const prev = this.b.xf, m = new THREE.Matrix4().makeRotationY(ry).setPosition(x, 0, z);
+    this.b.xf = prev ? prev.clone().multiply(m) : m; fn(); this.b.xf = prev;
+  }
+  // Tall gothic side wall facing the room: coursed wall, buttress piers, an arched doorway and a
+  // blind arched bay. Built in a local frame where the wall runs along x and faces +z.
+  sideWall(sx) {
+    const L = this.L, BZ = L.backZ, len = L.sideLen;
+    this.frame(sx * L.outerX, BZ + len / 2, -sx * Math.PI / 2, () => {
+      this.wall(-len / 2, 0, len / 2, 0, L.outerH, { thick: 0.9, broken: 0.35, course: 0.3, block: [0.4, 0.85], gapsAt: [[len * 0.38, len * 0.38 + 1.6, 0, 3.0]] });
+      for (const t of [0.08, 0.3, 0.55, 0.85]) this.pier(-len / 2 + t * len, 0.5, { w: 0.8, height: L.outerH * 0.85 });
+      this.archBay(-len / 2 + len * 0.43, 0.45, 1.8, Math.min(5.4, L.outerH), { door: true });
+      this.archBay(-len / 2 + len * 0.7, 0.45, 2.0, Math.min(5.4, L.outerH));
+    });
+    this.debris(sx * (L.outerX - 1.2), BZ + len * 0.45, 1.4, 10);
+    this.bones(sx * (L.outerX - 1.4), BZ + len * 0.25, 0.8, 12, 3);
+  }
   architecture() {
     const L = this.L, BZ = L.backZ;
     if (L.style === 2) for (const sx of [-1, 1]) {
       this.balustrade(sx, L.balU0, L.balU1, { piers: [L.balU1 - L.pierW / 2 - 0.1], ret: [L.balU0 + 0.5, 3.0, L.wallH * 1.4] });
       this.balustrade(sx, L.balL0, L.balL1, { piers: [L.balL0 + L.pierW / 2 + 0.1, L.balL1 - L.pierW / 2 - 0.4], ret: [L.balL0 + 0.4, 3.2, L.wallH * 1.3] });
-      this.wall(sx * L.outerX, BZ, sx * L.outerX, 16, L.outerH, { thick: 0.9, broken: 0.7, gapsAt: [[1.0, 2.6, 0, 3.2]] });
-      this.rubble(sx * (L.walk + 4.3), 2.6, 1.8, 40); this.bones(sx * (L.walk + 3.6), 3.4, 1.2, 18, 5);
+      this.sideWall(sx);
+      this.wall(sx * L.outerX, BZ + L.sideLen, sx * L.outerX, 16, L.outerH * 0.4, { thick: 0.9, broken: 0.8 });
+      this.rubble(sx * (L.walk + 4.3), 2.6, 1.8, 40); this.bones(sx * (L.walk + 3.2), 3.4, 1.6, 40, 14); this.bones(sx * (L.walk + 2.6), -5.6, 1.0, 20, 6);
       this.rubble(sx * (L.walk + 4.7), -4.5, 1.6, 26); this.rubble(sx * (L.walk + 4.2), 9.0, 1.8, 30);
     }
     if (L.mass) { this.sideMass(-1); this.sideMass(1); }
