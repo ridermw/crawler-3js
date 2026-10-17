@@ -315,33 +315,44 @@ export class World {
     run(-1.9, 1.9, -5.15, -4.8, 0, 0.18, 0.95);
     run(-1.8, 1.8, -4.8, -4.43, 0, 0.09, 0.95);
     run(-2.6, 2.6, -8.2, -5.85, 0.37, 0.22, 1.02);              // altar plinth
-    // altar block
-    const ay = 0.59, az = -6.65;
-    this.slab(3.3, 0.15, 1.75, 0, ay + 0.075, az, { tint: 0.92 });
-    this.slab(3.0, 0.88, 1.45, 0, ay + 0.59, az, { tint: 1.0 });
-    this.slab(3.5, 0.14, 1.8, 0, ay + 1.1, az, { tint: 1.06 });
-    for (let k = -1; k <= 1; k++) this.panel(k * 0.98, ay + 0.6, az + 0.73, 0.82, 0.72, 0);
-    for (const s2 of [-1, 1]) this.panel(s2 * 1.5, ay + 0.6, az, 1.1, 0.72, s2 * Math.PI / 2);
-    // tabernacle with spire, flanked by two tall pinnacles
-    const tz = -7.55, ty = ay + 1.17;
-    this.slab(2.0, 0.55, 0.9, 0, ty + 0.275, tz, { tint: 0.95 });
-    this.slab(1.1, 1.5, 0.7, 0, ty + 1.3, tz, { tint: 1.0 });
-    this.panel(0, ty + 1.3, tz + 0.35, 0.8, 1.2, 0);
-    this.b.add('glow', prep(new THREE.BoxGeometry(0.06, 0.55, 0.02), { pos: [0, ty + 1.3, tz + 0.38], tint: [1, 0.8, 0.45] }));
-    this.b.add('glow', prep(new THREE.BoxGeometry(0.3, 0.06, 0.02), { pos: [0, ty + 1.42, tz + 0.38], tint: [1, 0.8, 0.45] }));
-    this.b.add('stone', prep(new THREE.ConeGeometry(0.62, 1.1, 4), { pos: [0, ty + 2.6, tz], rot: [0, Math.PI / 4, 0], uv: 1.5 }));
-    this.finial(0, ty + 3.1, tz, 1.0);
-    for (const s2 of [-1, 1]) {
-      this.slab(0.3, 2.3, 0.3, s2 * 0.78, ty + 1.15, tz, { tint: 0.92 });
-      this.finial(s2 * 0.78, ty + 2.3, tz, 0.9);
-      this.slab(0.24, 1.4, 0.24, s2 * 1.6, ty + 0.7, tz - 0.1, { tint: 0.9 });
-      this.finial(s2 * 1.6, ty + 1.4, tz - 0.1, 0.7);
+    // altar block: 4.6 m wide front at z -5.85 (measured), arcaded front panels, a carved centre
+    // panel, and a stepped top slab
+    const ay = 0.59, az = -6.75, aw = 4.6, ad = 1.8;
+    this.slab(aw + 0.2, 0.16, ad + 0.2, 0, ay + 0.08, az, { tint: 0.9 });
+    this.slab(aw, 1.0, ad, 0, ay + 0.66, az, { tint: 1.0 });
+    this.slab(aw + 0.3, 0.16, ad + 0.3, 0, ay + 1.24, az, { tint: 1.06 });
+    for (const sd of [-1, 1]) {
+      // two blind lancet arches on each side of the front, separated by shafts
+      for (let k = 0; k < 2; k++) {
+        const x = sd * (0.75 + k * 0.72);
+        this.slab(0.5, 0.62, 0.06, x, ay + 0.6, az + ad / 2 + 0.02, { tint: 0.72, bevel: 0 });
+        this.b.add('stone', prep(new THREE.ConeGeometry(0.27, 0.22, 4, 1, true), { pos: [x, ay + 1.0, az + ad / 2 + 0.03], rot: [0, Math.PI / 4, 0], scale: [1, 1, 0.2], tint: 0.95 }));
+        this.slab(0.07, 0.86, 0.1, x + 0.33, ay + 0.66, az + ad / 2 + 0.05, { tint: 1.05, bevel: 0.02 });
+      }
+      this.panel(sd * aw / 2, ay + 0.66, az, ad * 0.7, 0.7, sd * Math.PI / 2);
     }
-    A.set(0, ay + 1.17, az);
+    this.panel(0, ay + 0.66, az + ad / 2, 0.8, 0.86, 0);
+    // gothic reliquary on the altar: base, open arched shrine with a spired gable and pinnacles
+    const tz = -7.75, ty = ay + 1.32;
+    this.slab(1.5, 0.3, 0.9, 0, ty + 0.15, tz, { tint: 0.95 });
+    this.slab(1.0, 1.5, 0.55, 0, ty + 1.05, tz, { tint: 0.92 });
+    this.panel(0, ty + 1.05, tz + 0.28, 0.75, 1.3, 0);
+    for (const sd of [-1, 1]) { this.slab(0.12, 1.9, 0.12, sd * 0.55, ty + 1.2, tz + 0.28, { tint: 1.05, bevel: 0.02 }); this.finial(sd * 0.55, ty + 2.15, tz + 0.28, 0.55); }
+    this.b.add('stone', prep(new THREE.ConeGeometry(0.55, 0.9, 4), { pos: [0, ty + 2.25, tz], rot: [0, Math.PI / 4, 0], scale: [1, 1, 0.55], uv: 1.5 }));
+    this.finial(0, ty + 2.65, tz, 0.7);
+    this.b.add('glow', prep(new THREE.BoxGeometry(0.05, 0.5, 0.02), { pos: [0, ty + 1.05, tz + 0.31], tint: [1, 0.8, 0.45] }));
+    this.b.add('glow', prep(new THREE.BoxGeometry(0.26, 0.05, 0.02), { pos: [0, ty + 1.16, tz + 0.31], tint: [1, 0.8, 0.45] }));
+    // slender candle pillars standing on the altar's back corners
+    for (const sd of [-1, 1]) {
+      this.slab(0.22, 2.3, 0.22, sd * 1.5, ty + 1.15, tz, { tint: 0.95, bevel: 0.03 });
+      this.finial(sd * 1.5, ty + 2.3, tz, 0.6);
+      this.candle(sd * 1.5, ty + 2.3, tz, 0.2, 0.05);
+    }
+    A.set(0, ay + 1.32, az);
     this.obstacles.push({ x: 0, z: -6.9, r: 2.4 }, { x: -2.0, z: -6.4, r: 1.2 }, { x: 2.0, z: -6.4, r: 1.2 });
     // candles on the altar, platform and steps
-    for (let k = 0; k < 16; k++) this.candle(-1.5 + (k % 8) * 0.43 + (r() - 0.5) * 0.1, ay + 1.17, az - 0.55 + Math.floor(k / 8) * 1.05 + (r() - 0.5) * 0.1, P.range(r, 0.12, 0.42), 0.05);
-    for (let k = 0; k < 7; k++) this.candle(-0.9 + k * 0.3, ty + 0.55, tz + 0.3, P.range(r, 0.1, 0.25), 0.04);
+    for (let k = 0; k < 18; k++) this.candle(-2.0 + (k % 9) * 0.5 + (r() - 0.5) * 0.12, ay + 1.32, az - 0.4 + Math.floor(k / 9) * 0.95 + (r() - 0.5) * 0.12, P.range(r, 0.12, 0.42), 0.055);
+    for (let k = 0; k < 6; k++) this.candle(-0.6 + k * 0.24, ty + 0.3, tz + 0.38, P.range(r, 0.1, 0.25), 0.04);
     for (const s2 of [-1, 1]) { this.candleCluster(s2 * 2.35, 0.37, -5.85, 6, 0.35); this.candleCluster(s2 * 2.4, 0.59, -7.8, 4, 0.3, 0.5); }
     this.bones(-2.6, -4.9, 0.6, 7, 2); this.bones(2.7, -4.8, 0.6, 7, 3);
   }
