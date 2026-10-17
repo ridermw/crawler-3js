@@ -1,0 +1,25 @@
+{
+  "rendered_at": "2026-10-17T00:09:30.573176+00:00",
+  "size": "1536x1024",
+  "quality": "high",
+  "deployment": "gpt-image-2.5-sunburst",
+  "model_name": "gpt-image-2.5-sunburst",
+  "model_version": "default",
+  "account": "mwilliams-imggen-eus2",
+  "prompt_char_count": 3767,
+  "prompt": "## MOCK SPEC\nPixel-perfect screenshot of a desktop action role-playing game settings menu, rendered as a game UI mockup, not concept art and not a stylized illustration.\n\nProduct and context:\nThis is the settings screen for a small playable dungeon-crawl proof of concept called \"The Ashen Reliquary.\" It must look like the same executable as the approved title and gameplay mockups. The background is the actual in-engine ruined cathedral crypt. Show the candle-covered altar, broken pillars, hanging chains, torn black banners, cracked flagstones, floor grates, and low fog. Use the same orthographic 3D camera as the title screen. Darken the background enough for interface legibility, but keep the environment visible. Do not blur the complete background.\n\nSettings layout:\nPlace one restrained settings panel slightly left of center. The panel occupies about 38 percent of the screen width and 62 percent of the screen height. Use a translucent near-black surface with a thin tarnished-brass top border. Do not use a large ornate frame.\n\n- Header: \"SETTINGS\" in large uppercase parchment serif text.\n- Subheader: \"Adjust the reliquary before you descend.\" in small muted slate text.\n- Add a thin brass divider.\n- Section heading: \"AUDIO\".\n- Row 1: label \"MASTER VOLUME\" on the left, value \"80%\" on the right, and a horizontal slider below. The slider track is charcoal. The filled portion is candle amber. The thumb is a small brass diamond.\n- Row 2: label \"AMBIENT VOLUME\" on the left, value \"65%\" on the right, and a matching horizontal slider below.\n- Section heading: \"DISPLAY\".\n- Row 3: label \"WINDOW MODE\" on the left and a compact two-choice selector on the right. Show \"WINDOWED\" selected and \"BORDERLESS\" unselected.\n- Row 4: label \"CAMERA DRIFT\" on the left and a compact toggle on the right. Show \"ON\".\n- Row 5: label \"VIGNETTE\" on the left and a compact toggle on the right. Show \"ON\".\n- Footer actions: \"APPLY\" and \"BACK\" as text buttons. Highlight \"APPLY\" with a thin pale-gold left marker. Put \"Enter Select   Esc Back   Arrows Navigate\" in small text below the actions.\n\nInteraction states:\nShow keyboard focus on the Master Volume slider with a thin pale-gold outline around its row. Show the slider thumb and value as active. Keep hover, selected, and inactive states visually distinct without large color changes.\n\nVisual system:\nUse the same restrained gothic visual system as the approved Ashen Reliquary mockups. Main colors: near-black #0B0D10, charcoal #191D22, cold slate #33424F, moonlight #8BA7B8, candle amber #D69A45, tarnished brass #8A6A35, blood crimson #8E1F24, parchment #D8CFB7. Use Cinzel-like serif lettering only for the SETTINGS header and section headings. Use a compact humanist sans-serif font for control labels, values, and help text. Use thin one-pixel borders, subtle inner shadows, clear row spacing, and small brass markers. Keep the interface readable at 1920 by 1080.\n\nContent and quality:\nText must be legible and spelled correctly. Alignment, spacing, slider values, and selector states must be internally consistent. The background must read as a production-ready low-poly 3D environment with physically based materials. The settings screen must be feasible with Bevy UI nodes, text, buttons, and custom slider/toggle widgets.\n\nAnti-style guardrails:\nNo photorealism. No painterly brush strokes. No pre-rendered illustration. No character portrait. No 2D sprite art. No anime. No cartoon proportions. No mobile-game layout. No giant opaque full-screen panel. No gradients in UI panels. No neon glow. No purple cyberpunk colors. No excessive bloom. No lens flare. No strong depth-of-field blur. No motion blur. No illegible microtext. No fake engine editor chrome. No watermark. Flat, sharp screenshot quality.",
+  "output_format": "png",
+  "usage": {
+    "input_tokens": 1756,
+    "input_tokens_details": {
+      "image_tokens": 0,
+      "text_tokens": 1756
+    },
+    "output_tokens": 2744,
+    "output_tokens_details": {
+      "image_tokens": 2744,
+      "text_tokens": 0
+    },
+    "total_tokens": 4500
+  }
+}

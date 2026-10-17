@@ -1,0 +1,25 @@
+{
+  "rendered_at": "2026-10-17T00:09:31.227823+00:00",
+  "size": "1536x1024",
+  "quality": "high",
+  "deployment": "gpt-image-2.5-sunburst",
+  "model_name": "gpt-image-2.5-sunburst",
+  "model_version": "default",
+  "account": "mwilliams-imggen-eus2",
+  "prompt_char_count": 3634,
+  "prompt": "## MOCK SPEC\nPixel-perfect screenshot of a desktop action role-playing game title screen, rendered as a game UI mockup, not concept art and not a stylized illustration.\n\nProduct and context:\nThis is the title screen for a small playable dungeon-crawl proof of concept called \"The Ashen Reliquary.\" It must make the Bevy game engine look ready for a polished game. The background is the actual in-engine dungeon room that the player will enter. Show the same ruined cathedral crypt as the approved Ashen Reliquary gameplay mockup. Use an orthographic 3D camera with a 35-degree downward pitch and a 45-degree horizontal angle. The camera is closer to the upper altar than during gameplay. The frame must look like an actual 16:9 PC game screenshot.\n\nBackground composition:\nShow a ruined stone crypt at night. Center the candle-covered altar in the upper-middle area. Frame it with two broken square pillars, hanging chains, torn black banners, short ruined walls, floor grates, cracked flagstones, bone piles, and sparse rubble. Show cold desaturated blue moonlight through a broken roof. Show warm amber candlelight around the altar. Add light fog near the floor. Leave the middle foreground open and dark enough for the title interface. Do not show the player, enemies, combat effects, minimap, health orbs, or action bar.\n\nTitle interface:\nPlace a restrained title block slightly left of center.\n- Large title on two lines: \"THE ASHEN\" and \"RELIQUARY.\" Use uppercase carved serif lettering in pale parchment with worn edges. The second line is slightly larger.\n- Put a small thin tarnished-brass divider below the title.\n- Add one short subtitle in compact small caps: \"DESCEND. END THE WARDEN.\"\n- Add exactly three vertical menu options below the subtitle: \"ENTER THE CRYPT\", \"SETTINGS\", and \"QUIT\".\n- Highlight \"ENTER THE CRYPT\" with a thin pale-gold left marker and slightly brighter text. Do not put large boxes around menu items.\n- Put \"CLICK OR PRESS ENTER\" in small text below the selected option.\n- Put \"A BEVY ENGINE PROOF OF CONCEPT\" in very small but legible text at the bottom-left safe margin.\n- Put \"v0.1\" in very small text at the bottom-right safe margin.\n\nVisual system:\nUse the same restrained gothic visual system as the gameplay mockup. Main colors: near-black #0B0D10, charcoal #191D22, cold slate #33424F, moonlight #8BA7B8, candle amber #D69A45, tarnished brass #8A6A35, blood crimson #8E1F24, parchment #D8CFB7. Use Cinzel-like serif lettering only for the game title. Use a compact humanist sans-serif font for menu and footer text. Use thin one-pixel lines, soft text shadows, clear spacing, and no full-screen panel. Add a subtle black vignette at screen edges. Keep the dungeon visible.\n\nContent and quality:\nText must be legible and spelled correctly. Perspective, scale, shadows, and occlusion must be internally consistent. The dungeon must read as a production-ready low-poly 3D environment with modular stone geometry. Make the scene achievable with procedural meshes and physically based materials. The title screen must look like the same executable as the approved gameplay screenshot, not separate key art.\n\nAnti-style guardrails:\nNo photorealism. No painterly brush strokes. No pre-rendered illustration. No hero portrait. No character montage. No 2D sprite art. No anime. No cartoon proportions. No mobile-game layout. No giant opaque panel. No gradients in UI panels. No neon glow. No purple cyberpunk colors. No excessive bloom. No lens flare. No strong depth-of-field blur. No motion blur. No illegible microtext. No fake engine editor chrome. No watermark. Flat, sharp screenshot quality.",
+  "output_format": "png",
+  "usage": {
+    "input_tokens": 1650,
+    "input_tokens_details": {
+      "image_tokens": 0,
+      "text_tokens": 1650
+    },
+    "output_tokens": 2744,
+    "output_tokens_details": {
+      "image_tokens": 2744,
+      "text_tokens": 0
+    },
+    "total_tokens": 4394
+  }
+}
