@@ -342,6 +342,11 @@ export class Combat {
     }
     return true;
   }
+  // Brief emissive flash on every mesh of an actor (materials are cloned once per actor on first use).
+  flash(a, color) {
+    if (!a.flashMats) { a.flashMats = []; a.J.root.traverse(o => { if (o.isMesh && !o.userData.isOutline && o.material.isMeshStandardMaterial) { o.material = o.material.clone(); a.flashMats.push(o.material); } }); }
+    a.flashT = 0.12; a.flashColor = new THREE.Color(color);
+  }
   ring(pos, color, life, size) {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: this.tex.marker, color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
     m.rotation.x = -Math.PI / 2; m.position.copy(pos); this.group.add(m);
@@ -365,6 +370,7 @@ export class Combat {
   damage(e, amount, nx, nz, knock = 0.5, stun = 0.2) {
     if (e.dead) return;
     e.hp -= amount; e.hitT = 0.25; e.stun = Math.max(e.stun, e.kind === 'warden' ? stun * 0.3 : stun);
+    this.flash(e, '#ffe6c0'); this.hooks.hitStop?.(e.kind === 'warden' ? 0.05 : 0.035);
     if (e.kind !== 'warden') e.vel.set(nx * knock * 4, 0, nz * knock * 4);
     this.target = e;
     const p = e.pos.clone().setY(e.kind === 'warden' ? 1.8 : 1.15);
@@ -385,7 +391,7 @@ export class Combat {
   hurtPlayer(amount) {
     const k = this.knight; if (k.dead || this.outcome) return;
     if (this.ward > 0) amount = Math.round(amount * 0.5);
-    k.hp -= amount; k.hitT = 0.2; this.hooks.shake?.(0.18); this.hooks.sfx?.('hurt');
+    k.hp -= amount; k.hitT = 0.2; this.hooks.shake?.(0.18); this.hooks.sfx?.('hurt'); this.flash(k, '#ff3020'); this.hooks.hurt?.();
     this.hooks.number?.(k.pos.clone().setY(2.2), String(amount), true, '#ff7060');
     if (k.hp <= 0) { k.hp = 0; k.dead = true; k.play('die'); this.outcome = 'defeat'; this.hooks.event?.('defeat'); }
   }
@@ -399,6 +405,10 @@ export class Combat {
     // animation
     k.animT += dt; this.poseKnight(k, dt);
     for (const e of this.enemies) { e.animT += dt; e.kind === 'warden' ? this.poseWarden(e, dt, t) : this.poseThrall(e, dt); }
+    for (const a of [k, ...this.enemies]) if (a.flashMats) {
+      a.flashT = Math.max(0, (a.flashT || 0) - dt); const f = a.flashT / 0.12;
+      for (const m of a.flashMats) { m.emissive.copy(a.flashColor).multiplyScalar(f * 0.9); }
+    }
     this.enemies = this.enemies.filter(e => { if (e.dead && e.kind !== 'warden' && e.deadT > 3) { this.group.remove(e.J.root); return false; } return true; });
     // fx
     this.arcT = Math.max(0, (this.arcT || 0) - dt);

@@ -48,9 +48,9 @@ composer.addPass(bloom);
 // Cold-blue shadow / warm-amber highlight split-toning, vignette and screen dimming (linear HDR).
 const CryptGrade = {
   uniforms: { tDiffuse: { value: null }, uVig: { value: 1 }, uDim: { value: 1 }, uAspect: { value: 16 / 9 }, uShade: { value: 0 },
-    uLo: { value: new THREE.Vector3(0.96, 0.99, 1.04) }, uHi: { value: new THREE.Vector3(1.04, 1.0, 0.95) }, uSat: { value: 0.9 }, uGain: { value: 1 } },
+    uLo: { value: new THREE.Vector3(0.96, 0.99, 1.04) }, uHi: { value: new THREE.Vector3(1.04, 1.0, 0.95) }, uSat: { value: 0.9 }, uGain: { value: 1 }, uHurt: { value: 0 } },
   vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
-  fragmentShader: `uniform sampler2D tDiffuse; uniform float uVig, uDim, uAspect, uShade, uSat, uGain; uniform vec3 uLo, uHi; varying vec2 vUv;
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uVig, uDim, uAspect, uShade, uSat, uGain, uHurt; uniform vec3 uLo, uHi; varying vec2 vUv;
   void main(){
     vec4 c = texture2D(tDiffuse, vUv);
     float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722));
@@ -63,6 +63,8 @@ const CryptGrade = {
     // menu screens: a soft pool of shadow behind the lower-left interface
     vec2 sd = (vUv - vec2(0.36, 0.2)) * vec2(uAspect / 1.5, 1.0) * vec2(1.0, 1.6);
     c.rgb *= 1.0 - uShade * smoothstep(0.62, 0.0, length(sd));
+    // damage pulse: crimson creeps in from the screen edges
+    c.rgb = mix(c.rgb, c.rgb * vec3(1.6, 0.35, 0.3), uHurt * smoothstep(0.35, 0.95, length(d)));
     c.rgb *= uDim;
     gl_FragColor = c;
   }`,
@@ -116,6 +118,8 @@ const ui = new UI(app, { frozen: FREEZE });
 const combat = new Combat(scene, world, {
   sfx: name => sfx[name]?.(),
   shake: a => { if (!FREEZE) shake = Math.max(shake, a); },
+  hitStop: d => { if (!FREEZE) hitStop = Math.max(hitStop, d); },
+  hurt: () => { if (!FREEZE) hurtT = 0.35; },
   number: (pos, text, isDamage, color) => ui.number(pos, text, color),
   event: e => {
     if (e === 'loot') ui.loot(true);
@@ -289,9 +293,13 @@ Object.defineProperties(telemetry, {
   settings: { enumerable: true, get: () => ({ ...ui.settings }) },
   draft: { enumerable: true, get: () => ({ ...ui.draft }) },
 });
-let time = FREEZE ? FROZEN_TIME : 0, last = performance.now(), frames = 0;
+let time = FREEZE ? FROZEN_TIME : 0, last = performance.now(), frames = 0, hitStop = 0, hurtT = 0;
 function frame(now) {
-  const dt = FREEZE ? 0 : Math.min(0.05, (now - last) / 1000); last = now; time += dt;
+  let dt = FREEZE ? 0 : Math.min(0.05, (now - last) / 1000); last = now;
+  // hit-stop: a few frames of near-freeze on impact sell the weight of a blow
+  if (hitStop > 0) { hitStop -= dt; dt *= 0.08; }
+  time += dt;
+  hurtT = Math.max(0, hurtT - dt); grade.uniforms.uHurt.value = hurtT / 0.35;
   if (state === 'crypt') {
     combat.update(dt, { move: readMove(), dest: pendingDest, cast: pendingCast, aim: touchMode ? nearestEnemy() : mouse.ground }, time);
     pendingDest = null; pendingCast = null;
