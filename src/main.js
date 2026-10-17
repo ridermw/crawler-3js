@@ -7,6 +7,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { World } from './world.js';
 import { Combat, ABILITIES } from './combat.js';
 import { UI } from './ui.js';
@@ -46,6 +47,22 @@ const FOG_DENSITY_X_DIST = 0.72;
 const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
 const composer = new EffectComposer(renderer, rt);
 composer.addPass(new RenderPass(scene, camera));
+// Ground-truth ambient occlusion: contact darkening where stone meets stone and props meet the floor.
+const gtao = new GTAOPass(scene, camera, 1, 1);
+gtao.updateGtaoMaterial({ radius: 0.6, distanceExponent: 1.4, thickness: 1.5, scale: 1.4, samples: 8 });
+gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 4, rings: 2, samples: 8 });
+gtao.blendIntensity = 0.4;
+// sprites, glows and transparent planes (fog, shafts, halos, rings) must not occlude anything
+gtao.overrideVisibility = function () {
+  this.scene.traverse(o => {
+    this._visibilityCache.set(o, o.visible);
+    const m = Array.isArray(o.material) ? o.material[0] : o.material;
+    if (o.isPoints || o.isLine || o.isSprite || (m && (m.transparent || m.blending === THREE.AdditiveBlending))) o.visible = false;
+  });
+};
+// half-resolution AO: the occlusion term is low-frequency, so this costs little in quality
+gtao.setSize = function (w, h) { GTAOPass.prototype.setSize.call(this, Math.ceil(w / 2), Math.ceil(h / 2)); };
+composer.addPass(gtao);
 const bloom = new UnrealBloomPass(new THREE.Vector2(512, 512), 0.45, 0.5, 0.9);
 composer.addPass(bloom);
 // Cold-blue shadow / warm-amber highlight split-toning, vignette and screen dimming (linear HDR).
@@ -106,6 +123,7 @@ function resize() {
   grade.uniforms.uAspect.value = w / h;
 }
 addEventListener('resize', resize);
+if (SMALL_TOUCH) gtao.enabled = false;
 
 // ---------------------------------------------------------------- world, combat, ui
 const world = new World(scene);
@@ -190,7 +208,7 @@ function applyClay() {
   world.hemi.color.set('#ffffff'); world.hemi.groundColor.set('#5a5a5a'); world.hemi.intensity = 1.6;
   const key = new THREE.DirectionalLight('#ffffff', 1.4); key.position.set(-6, 14, 10); scene.add(key);
   scene.fog = null; scene.background = new THREE.Color('#dcdcdc');
-  bloom.enabled = false; grade.enabled = false; renderer.toneMapping = THREE.NoToneMapping;
+  bloom.enabled = false; grade.enabled = false; gtao.enabled = false; renderer.toneMapping = THREE.NoToneMapping;
   renderer.shadowMap.enabled = false;
 }
 
@@ -286,7 +304,9 @@ window.__crawlerUnproject = (u, v, y = 0) => {
 // Tuning hook for tools/fidelity/search.mjs: adjust camera, grade and lights without a reload.
 window.__crawlerDebug = {
   pose: p => { if (p.target) cam.target.set(...p.target); for (const k of ['yaw', 'pitch', 'height', 'fov']) if (p[k] !== undefined) cam[k] = p[k]; },
-  grade: g => { const u = grade.uniforms; if (g.lo) u.uLo.value.set(...g.lo); if (g.hi) u.uHi.value.set(...g.hi); for (const k of ['sat', 'gain', 'shade', 'dim', 'vig']) if (g[k] !== undefined) u['u' + k[0].toUpperCase() + k.slice(1)].value = g[k]; },
+  grade: g => { const u = grade.uniforms; if (g.lo) u.uLo.value.set(...g.lo); if (g.hi) u.uHi.value.set(...g.hi); if (g.ao !== undefined) gtao.blendIntensity = g.ao;
+    if (g.aoRadius !== undefined) gtao.updateGtaoMaterial({ radius: g.aoRadius });
+    for (const k of ['sat', 'gain', 'shade', 'dim', 'vig']) if (g[k] !== undefined) u['u' + k[0].toUpperCase() + k.slice(1)].value = g[k]; },
   lights: l => { if (l.moon !== undefined) world.moon.intensity = l.moon; if (l.pool !== undefined) world.pool.intensity = l.pool; if (l.hemi !== undefined) world.hemi.intensity = l.hemi; if (l.candles !== undefined) world.setCandleScale(l.candles); if (l.exposure !== undefined) renderer.toneMappingExposure = l.exposure; if (l.moonColor) world.moon.color.set(l.moonColor); if (l.hemiColor) world.hemi.color.set(l.hemiColor); },
   state: () => ({ cam: { target: cam.target.toArray(), yaw: cam.yaw, pitch: cam.pitch, height: cam.height, fov: cam.fov } }),
 };
