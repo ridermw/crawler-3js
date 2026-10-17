@@ -478,7 +478,10 @@ export class Combat {
       this.rune.position.set(w.pos.x, 0.03, w.pos.z); this.rune.rotation.z = t * 0.25;
       const gp = new THREE.Vector3(); w.J.gem.getWorldPosition(gp);
       this.staffGlow.position.copy(gp); this.staffLight.position.copy(gp);
-      this.staffGlow.visible = !w.dead; this.staffLight.intensity = w.dead ? 0 : 6 + Math.sin(t * 6) * 1.5;
+      // telegraph: the staff swells and brightens while a bolt or nova is charging
+      const charge = this.active && dt > 0 && !w.dead && w.anim === 'cast' && !w.fired ? Math.min(1, w.animT / 0.6) : 0;
+      this.staffGlow.visible = !w.dead; this.staffGlow.scale.setScalar((0.7 + charge * 0.9) * ACTOR_SCALE);
+      this.staffLight.intensity = w.dead ? 0 : 6 + Math.sin(t * 6) * 1.5 + charge * 14;
     }
     this.knightLight.position.set(k.pos.x - 1.5, 3.2 * ACTOR_SCALE, k.pos.z + 2.0);
     for (const e of this.enemies) if (e.J.outline) { const on = e === this.target && !e.dead; e.J.outline.forEach(o => o.visible = on); }
