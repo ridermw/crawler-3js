@@ -24,10 +24,10 @@ function mats() {
   const steel = P.steelSurface(101), bone = P.boneSurface(102), robe = P.clothSurface(103, [58, 50, 50]), cape = P.clothSurface(104, [22, 22, 26]);
   const std = o => new THREE.MeshStandardMaterial({ roughness: 0.8, ...o });
   M = {
-    armor: std({ ...steel, color: '#b8bdc4', metalness: 0.55, roughness: 0.38, emissive: '#1a1c20', envMapIntensity: 1 }),
-    armorDark: std({ ...steel, color: '#80868e', metalness: 0.45, roughness: 0.5, emissive: '#101114' }),
+    armor: std({ ...steel, color: '#5e636b', metalness: 0.6, roughness: 0.4, emissive: '#0c0d10', envMapIntensity: 1 }),
+    armorDark: std({ ...steel, color: '#3c4047', metalness: 0.5, roughness: 0.5, emissive: '#08090b' }),
     leather: std({ color: '#3b2b20', roughness: 0.85 }),
-    cloth: std({ ...cape, color: '#6a6a72', side: THREE.DoubleSide }),
+    cloth: std({ ...cape, color: '#3a3a40', side: THREE.DoubleSide }),
     brass: std({ color: '#a8823e', metalness: 0.45, roughness: 0.4 }),
     blade: std({ color: '#dfe3e8', metalness: 0.5, roughness: 0.25, emissive: '#2a2a2a' }),
     bone: std({ ...bone, color: '#a89f88', roughness: 0.75 }),
@@ -97,9 +97,8 @@ function buildKnight() {
   J.bladeTip = joint(sw, 0, -1.45, 0);
   // kite shield on the left forearm
   const shield = joint(J.elL, -0.09, -0.16, 0.0);
-  part(box(0.05, 0.62, 0.42), m.armorDark, 0, 0, 0, shield);
-  part(box(0.06, 0.54, 0.06), m.brass, 0, 0, 0, shield);
-  part(box(0.06, 0.06, 0.34), m.brass, 0, 0.08, 0, shield);
+  part(cyl(0.2, 0.2, 0.05, 10), m.armorDark, 0, 0, 0, shield, { rz: Math.PI / 2 });
+  part(sph(0.06, 6, 4), m.rust, -0.03, 0, 0, shield);
   J.root = root; root.userData.blade = blade;
   return J;
 }
@@ -315,7 +314,7 @@ export class Combat {
       const t1 = this.spawnEnemy('thrall', 3.0, 5.6, 11); t1.facing = -1.9; t1.play('recoil'); t1.animT = 0.08; t1.hp = 22; this.target = t1;
       const t2 = this.spawnEnemy('thrall', -6.0, -1.1, 12); t2.facing = 0.74; t2.walk = 1.3; t2.walkAmt = 1;
       const t3 = this.spawnEnemy('archer', 4.7, -3.2, 13); t3.facing = -0.5;
-      k.play('slash'); k.animT = 0.3; this.arcT = 0.12; this.arcFacing = k.facing;
+      k.play('slash'); k.animT = 0.24; this.arcT = 0.12; this.arcFacing = k.facing; k.snapshotPose = true;
       this.cooldowns['2'] = ABILITIES[1].cd * 0.42; this.cooldowns['3'] = ABILITIES[2].cd * 0.62;
       this.dest = new THREE.Vector3(0.75, 0, 8.2);
       this.snapshotFx(t1);
@@ -657,7 +656,7 @@ export class Combat {
   // ------------------------------------------------------------ poses
   legs(J, walk, amt, stride = 0.55) {
     const s = Math.sin(walk) * stride * amt;
-    J.hipL.rotation.x = s; J.hipR.rotation.x = -s;
+    J.hipL.rotation.set(s, 0, 0); J.hipR.rotation.set(-s, 0, 0);
     J.kneeL.rotation.x = Math.max(0, -Math.sin(walk - 0.9)) * 0.8 * amt; J.kneeR.rotation.x = Math.max(0, Math.sin(walk - 0.9)) * 0.8 * amt;
   }
   poseKnight(k, dt) {
@@ -676,11 +675,19 @@ export class Combat {
       J.torso.rotation.y = lerp(yaw, 0, rec);
       J.torso.rotation.x = lerp(0.25, 0.08, rec);
       J.hips.rotation.y = J.torso.rotation.y * -0.25; J.hips.position.y = lerp(0.86, 0.98, rec);
-      J.hipL.rotation.x = lerp(-0.7, 0, rec); J.kneeL.rotation.x = lerp(0.6, 0, rec); J.hipR.rotation.x = lerp(0.55, 0, rec); J.kneeR.rotation.x = lerp(0.35, 0, rec);
+      J.hipL.rotation.set(lerp(-0.7, 0, rec), 0, lerp(0.35, 0, rec)); J.kneeL.rotation.x = lerp(0.6, 0, rec); J.hipR.rotation.set(lerp(0.55, 0, rec), 0, lerp(-0.3, 0, rec)); J.kneeR.rotation.x = lerp(0.35, 0, rec);
       J.shR.rotation.set(lerp(-1.35, -0.35, rec), lerp(-0.2, 0, rec), lerp(-0.55, -0.12, rec)); J.elR.rotation.set(lerp(-0.15, -0.5, rec), 0, 0);
       J.handR.rotation.set(lerp(-1.45, -1.2, rec), 0, lerp(0.25, 0, rec));
       J.shL.rotation.set(lerp(-0.8, -0.3, rec), 0, lerp(0.7, 0.18, rec));
-      if (t > 0.7) k.play('idle');
+      if (k.snapshotPose) {
+        // the reference keyframe: follow-through with the blade extended low and to the right,
+        // off hand thrown back, crouched in a wide stance
+        J.torso.rotation.set(0.35, -0.55, 0); J.hips.rotation.y = 0.2; J.hips.position.y = 0.8;
+        J.hipL.rotation.set(-0.8, 0, 0.45); J.kneeL.rotation.x = 0.8; J.hipR.rotation.set(0.6, 0, -0.4); J.kneeR.rotation.x = 0.5;
+        J.shR.rotation.set(-0.9, 0, -1.25); J.elR.rotation.set(-0.15, 0, 0); J.handR.rotation.set(-1.35, 0, 0.55);
+        J.shL.rotation.set(0.5, 0, 0.9); J.elL.rotation.set(-0.6, 0, 0);
+      }
+      if (t > 0.7) { k.play('idle'); k.snapshotPose = false; }
     } else if (k.anim === 'bash') {
       const p = Math.sin(Math.min(1, t / 0.4) * Math.PI);
       J.shL.rotation.set(-1.4 * p - 0.3, 0, 0.18); J.elL.rotation.set(-0.4, 0.3, 0); J.torso.rotation.y = -0.4 * p; J.hips.position.y = 0.98 - 0.08 * p;
