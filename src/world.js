@@ -60,7 +60,7 @@ export const LAYOUT = {
   backZ: -8.3,
   backH: 7,
   recessHalf: 3.8,
-  bannerPierX: 5.375,
+  bannerPierX: 3.95,
   bannerX: 4.6,
   curbW: 2.2,
   curbH: 0.6,
@@ -239,6 +239,11 @@ export class World {
       const dy = (y1 - y0) / len, horiz = Math.atan2(x1 - x0, z1 - z0);
       this.b.add('iron', prep(new THREE.TorusGeometry(0.065, 0.018, 4, 8), { pos: [x, y, z], rot: [Math.PI / 2 - dy, horiz, k % 2 ? Math.PI / 2 : 0] }));
     }
+  }
+  // heavy chain: large oval links, alternating orientation
+  bigChain(x, z, yTop, yBottom) {
+    const n = Math.floor((yTop - yBottom) / 0.26);
+    for (let k = 0; k <= n; k++) this.b.add('iron', prep(new THREE.TorusGeometry(0.13, 0.04, 5, 10), { pos: [x, yTop - k * 0.26, z], rot: [0, k % 2 ? Math.PI / 2 : 0, Math.PI / 2], scale: [1.4, 1, 1] }));
   }
   hangingChain(x, z, yTop, yBottom) {
     const n = Math.floor((yTop - yBottom) / 0.12);
@@ -625,18 +630,21 @@ export class World {
     }
     if (L.mass) { this.sideMass(-1); this.sideMass(1); }
     // back wall with a recess behind the tabernacle
-    this.wall(-15, BZ, -L.recessHalf, BZ, L.backH, { thick: 0.8, broken: 0.15 });
-    this.wall(L.recessHalf, BZ, 15, BZ, L.backH, { thick: 0.8, broken: 0.15 });
+    this.wall(-15, BZ, -L.recessHalf, BZ, L.backH, { thick: 0.8, broken: 0.15, course: 0.3, block: [0.4, 0.85] });
+    this.wall(L.recessHalf, BZ, 15, BZ, L.backH, { thick: 0.8, broken: 0.15, course: 0.3, block: [0.4, 0.85] });
     this.wall(-L.recessHalf, BZ - 0.9, L.recessHalf, BZ - 0.9, L.backH, { thick: 0.7, broken: 0.1, gapsAt: [[1.2, 2.6, 2.6, 6.2], [5.0, 6.4, 2.6, 6.2], [3.1, 4.5, 3.4, 7.0]] });
     this.window(-2.4, 4.4, BZ - 0.88, 1.15, 3.2); this.window(2.4, 4.4, BZ - 0.88, 1.15, 3.2); this.window(0, 5.2, BZ - 0.88, 1.15, 3.4);
     for (const sx of [-1, 1]) {
       this.wall(sx * L.recessHalf, BZ, sx * L.recessHalf, BZ - 0.9, L.backH, { thick: 0.5, broken: 0.05 });
+      // stepped plinth along the foot of the back wall
+      for (const [dz, h] of [[0.75, 0.22], [0.5, 0.4]]) { let x = L.recessHalf; while (x < 14.6) { const w = P.range(this.r, 0.6, 1.2); this.slab(w - 0.03, h, 0.3, sx * (x + w / 2), h / 2, BZ + dz, { tint: P.range(this.r, 0.82, 1.0), bevel: 0.03 }); x += w; } }
       // the back wall's gothic bays (buttress piers at the measured x positions, arched recesses between)
       this.pier(sx * L.bannerPierX, BZ + 0.5, { w: 1.0, height: 5.6 });
       for (const px of [7.3, 9.9, 13.2]) this.pier(sx * px, BZ + 0.4, { w: 0.8, height: 5.4 });
       for (const [bx, bw, door] of [[8.6, 2.0, false], [11.55, 2.4, true]]) this.archBay(sx * bx, BZ + 0.42, bw, 5.4, { door });
-      this.banner(sx * 6.0, 4.7, BZ + 0.45, sx > 0 ? 1 : 0, 1.15, 3.8);
-      this.hangingChain(sx * 6.8, BZ + 0.5, 8.5, 0.9); this.hangingChain(sx * 5.1, BZ + 0.5, 8.5, 1.4);
+      this.banner(sx * 5.75, 4.6, BZ + 0.75, sx > 0 ? 1 : 0, 1.15, 3.7);
+      this.slab(0.12, 0.12, 0.6, sx * 5.75, 4.66, BZ + 0.45, { key: 'iron', bevel: 0 });
+      this.bigChain(sx * 6.75, BZ + 0.7, 8.5, 1.0); this.bigChain(sx * 4.75, BZ + 0.7, 8.5, 2.2);
       this.candleCluster(sx * 6.0, 0, BZ + 0.8, 5, 0.35, 0.4); this.bones(sx * 5.4, BZ + 1.1, 0.6, 7, 2);
       this.slab(1.3, 0.6, 0.8, sx * 9.4, 0.3, BZ + 0.7, { tint: 0.9 });
     }

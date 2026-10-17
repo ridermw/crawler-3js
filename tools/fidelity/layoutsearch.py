@@ -20,7 +20,7 @@ import claymatch as cm
 # name: (step, lo, hi)
 SPACE = {
     "walk": (0.4, 5.5, 9.5), "backZ": (0.2, -8.8, -8.2), "backH": (1.0, 3, 10), "recessHalf": (0.5, 2.5, 5.5),
-    "bannerPierX": (0.5, 4, 9), "bannerX": (0.5, 3, 8),
+    "bannerPierX": (0.2, 3.6, 4.4), "bannerX": (0.5, 3, 8),
     "curbW": (0.4, 0.4, 3.0), "curbH": (0.15, 0.1, 1.2), "upperEnd": (0.6, -2, 3.5), "upperWallX": (0.6, 8.5, 13), "upperWallH": (0.4, 0.4, 3.5),
     "plinthW": (0.3, 1.0, 2.6), "plinthH": (0.25, 0.5, 2.0), "shaftW": (0.15, 0.5, 1.4), "pierTop": (0.4, 1.8, 5),
     "pierUX": (0.4, 7, 11), "pierUZ": (0.6, -3, 3), "pierU2X": (0.4, 7, 11), "pierU2Z": (0.6, -7, -1),
