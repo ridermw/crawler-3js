@@ -57,24 +57,24 @@ class Buckets {
 export const LAYOUT = {
   // fitted to the reference clay pass by tools/fidelity/layoutsearch.py (measured start values)
   walk: 7.6,
-  backZ: -7.8,
+  backZ: -8.3,
   backH: 7,
   recessHalf: 3.8,
-  bannerPierX: 4.375,
+  bannerPierX: 5.375,
   bannerX: 4.6,
-  curbW: 1.8,
+  curbW: 2.2,
   curbH: 0.6,
-  upperEnd: 2,
-  upperWallX: 9.1,
+  upperEnd: 2.6,
+  upperWallX: 8.5,
   upperWallH: 1.8,
-  plinthW: 1.3,
-  plinthH: 1.6,
-  shaftW: 0.95,
+  plinthW: 1.75,
+  plinthH: 1.35,
+  shaftW: 1.1,
   pierTop: 3.2,
   pierUX: 9.2,
   pierUZ: 0.5,
   pierU2X: 8,
-  pierU2Z: -3.7,
+  pierU2Z: -3.1,
   lowerStart: 5.2,
   stepN: 3,
   stepH: 0.43,
@@ -83,12 +83,12 @@ export const LAYOUT = {
   pierLZ: 6.9,
   pierBX: 9,
   pierBZ: 12,
-  outerX: 13.6,
-  mass: 0,                 // depth-baked side masses (src/heightfield.js); off: scored worse than the measured build
+  outerX: 14.5,
+  mass: 0,  // depth-baked side masses (src/heightfield.js): scored worse than the measured build
   hScale: 1,
   course: 0.35,
   sideRange: 1,
-  outerH: 4.2,
+  outerH: 3.7,
 };
 const WALK = [
   { x0: -7.2, x1: 7.2, z0: -5.4, z1: 13.5 },    // walkway between the side ranges
@@ -296,11 +296,11 @@ export class World {
       let x = x0;
       while (x < x1 - 0.05) { const w = Math.min(P.range(r, 0.7, 1.3), x1 - x); this.slab(w - 0.04, h, z1 - z0 - 0.04, x + w / 2, y + h / 2, (z0 + z1) / 2, { tint: tint * P.range(r, 0.85, 1.08), bevel: 0.04 }); x += w; }
     };
-    run(-2.9, 2.9, -8.4, -5.55, 0, 0.37);                       // platform
+    run(-2.9, 2.9, -8.2, -5.55, 0, 0.37);                       // platform
     run(-2.0, 2.0, -5.55, -5.15, 0, 0.27, 0.95);                 // steps
     run(-1.9, 1.9, -5.15, -4.8, 0, 0.18, 0.95);
     run(-1.8, 1.8, -4.8, -4.43, 0, 0.09, 0.95);
-    run(-2.6, 2.6, -8.4, -5.85, 0.37, 0.22, 1.02);              // altar plinth
+    run(-2.6, 2.6, -8.2, -5.85, 0.37, 0.22, 1.02);              // altar plinth
     // altar block
     const ay = 0.59, az = -6.65;
     this.slab(3.3, 0.15, 1.75, 0, ay + 0.075, az, { tint: 0.92 });
@@ -309,7 +309,7 @@ export class World {
     for (let k = -1; k <= 1; k++) this.panel(k * 0.98, ay + 0.6, az + 0.73, 0.82, 0.72, 0);
     for (const s2 of [-1, 1]) this.panel(s2 * 1.5, ay + 0.6, az, 1.1, 0.72, s2 * Math.PI / 2);
     // tabernacle with spire, flanked by two tall pinnacles
-    const tz = -7.9, ty = ay + 1.17;
+    const tz = -7.55, ty = ay + 1.17;
     this.slab(2.0, 0.55, 0.9, 0, ty + 0.275, tz, { tint: 0.95 });
     this.slab(1.1, 1.5, 0.7, 0, ty + 1.3, tz, { tint: 1.0 });
     this.panel(0, ty + 1.3, tz + 0.35, 0.8, 1.2, 0);
@@ -506,6 +506,22 @@ export class World {
       }
     });
   }
+  // Gothic bay on a wall facing +z: a recessed pointed-arch panel between two shafts, centred at x.
+  archBay(x, z, w, h, { depth = 0.35, sill = 0.6, door = false } = {}) {
+    const r = this.r, top = h - 0.5, spring = top - w * 0.55;
+    // recessed back panel and the arch head built from short tilted voussoir slabs
+    this.slab(w, door ? spring + 0.5 : spring - sill, 0.15, x, door ? (spring + 0.5) / 2 : sill + (spring - sill) / 2, z - depth, { tint: 0.7, bevel: 0 });
+    const n = 7;
+    for (let k = 0; k < n; k++) {
+      for (const side of [-1, 1]) {
+        const a0 = (k / n) * Math.PI / 3, a1 = ((k + 1) / n) * Math.PI / 3, am = (a0 + a1) / 2;
+        const cx = x - side * w / 2 + side * w * (1 - Math.cos(am)), cy = spring + w * Math.sin(am);
+        this.slab(0.22, w * (a1 - a0) + 0.04, 0.4, cx - side * 0.05, cy, z - 0.05, { rz: side * am, tint: P.range(r, 0.92, 1.05), bevel: 0.03 });
+      }
+    }
+    for (const side of [-1, 1]) this.slab(0.22, spring, 0.4, x + side * (w / 2 - 0.02), spring / 2, z - 0.05, { tint: P.range(r, 0.9, 1.05), bevel: 0.03 });
+    if (!door) this.slab(w + 0.3, 0.14, 0.5, x, sill, z, { tint: 1.05 });
+  }
   architecture() {
     const L = this.L, BZ = L.backZ;
     if (L.mass) { this.sideMass(-1); this.sideMass(1); }
@@ -516,9 +532,10 @@ export class World {
     this.window(-2.4, 4.4, BZ - 0.88, 1.15, 3.2); this.window(2.4, 4.4, BZ - 0.88, 1.15, 3.2); this.window(0, 5.2, BZ - 0.88, 1.15, 3.4);
     for (const sx of [-1, 1]) {
       this.wall(sx * L.recessHalf, BZ, sx * L.recessHalf, BZ - 0.9, L.backH, { thick: 0.5, broken: 0.05 });
-      // pilasters measured on the reference back wall, banner and chains between the inner pair
+      // the back wall's gothic bays (buttress piers at the measured x positions, arched recesses between)
       this.pier(sx * L.bannerPierX, BZ + 0.5, { w: 1.0, height: 5.6 });
-      for (const px of [7.3, 9.7, 13.2]) this.pier(sx * px, BZ + 0.35, { w: 0.75, height: 5.0 });
+      for (const px of [7.3, 9.9, 13.2]) this.pier(sx * px, BZ + 0.4, { w: 0.8, height: 5.4 });
+      for (const [bx, bw, door] of [[8.6, 2.0, false], [11.55, 2.4, true]]) this.archBay(sx * bx, BZ + 0.42, bw, 5.4, { door });
       this.banner(sx * 6.0, 4.7, BZ + 0.45, sx > 0 ? 1 : 0, 1.15, 3.8);
       this.hangingChain(sx * 6.8, BZ + 0.5, 8.5, 0.9); this.hangingChain(sx * 5.1, BZ + 0.5, 8.5, 1.4);
       this.candleCluster(sx * 6.0, 0, BZ + 0.8, 5, 0.35, 0.4); this.bones(sx * 5.4, BZ + 1.1, 0.6, 7, 2);
