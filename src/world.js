@@ -56,7 +56,7 @@ class Buckets {
 // Walkable footprint of the cruciform crypt (axis-aligned rectangles).
 export const LAYOUT = {
   // fitted to the reference clay pass by tools/fidelity/layoutsearch.py (measured start values)
-  walk: 7.6,
+  walk: 7.7,
   backZ: -8.3,
   backH: 7,
   recessHalf: 3.8,
@@ -83,7 +83,18 @@ export const LAYOUT = {
   pierLZ: 6.9,
   pierBX: 9,
   pierBZ: 12,
-  outerX: 14.5,
+  outerX: 14.8,
+  style: 2,  // 2: reference balustrades; 1: earlier stepped side masses
+  bCurbW: 0.637,
+  bCurbH: 0.45,
+  wallT: 0.95,
+  wallH: 1.2,
+  pierW: 1.25,
+  pierH: 1,
+  balU0: -5.1,
+  balU1: 1.8,
+  balL0: 6,
+  balL1: 13.8,
   mass: 0,  // depth-baked side masses (src/heightfield.js): scored worse than the measured build
   hScale: 1,
   course: 0.35,
@@ -522,8 +533,46 @@ export class World {
     for (const side of [-1, 1]) this.slab(0.22, spring, 0.4, x + side * (w / 2 - 0.02), spring / 2, z - 0.05, { tint: P.range(r, 0.9, 1.05), bevel: 0.03 });
     if (!door) this.slab(w + 0.3, 0.14, 0.5, x, sill, z, { tint: 1.05 });
   }
+  // Balustrade wall as in the reference: a curb step on the walkway side, a low solid wall of
+  // coursed blocks, short capped piers at its ends, and a broken return wall running outward.
+  balustrade(sx, z0, z1, { piers = [], ret = null }) {
+    const L = this.L, r = this.r, X = v => sx * v, xi = L.walk;
+    const xc = xi + L.bCurbW + L.wallT / 2;
+    let z = z0;
+    while (z < z1 - 0.05) {
+      const w = Math.min(P.range(r, 0.7, 1.2), z1 - z);
+      this.slab(L.bCurbW - 0.03, L.bCurbH, w - 0.04, X(xi + L.bCurbW / 2), L.bCurbH / 2, z + w / 2, { tint: P.range(r, 0.82, 1.02), bevel: 0.04 });
+      const h1 = L.wallH * 0.5;
+      this.slab(L.wallT - 0.04, h1 - 0.02, w - 0.04, X(xc), h1 / 2, z + w / 2, { tint: P.range(r, 0.8, 1.04), bevel: 0.04 });
+      const w2 = Math.min(P.range(r, 0.6, 1.1), z1 - z);
+      this.slab(L.wallT - 0.08, L.wallH - h1 - 0.02, w2 - 0.04, X(xc), h1 + (L.wallH - h1) / 2, z + w2 / 2, { tint: P.range(r, 0.8, 1.04), bevel: 0.04 });
+      z += w;
+    }
+    this.slab(L.wallT + 0.12, 0.12, z1 - z0, X(xc), L.wallH + 0.06, (z0 + z1) / 2, { tint: 1.06, bevel: 0.03 });
+    for (let zz = z0; zz < z1; zz += 0.7) this.obstacles.push({ x: X(xi + 0.9), z: zz + 0.35, r: 0.9 });
+    for (const pz of piers) {
+      const y = this.moulding(X(xc), L.wallH + 0.12, pz, L.pierW + 0.3, L.pierW + 0.3, [[0, 0.16], [0.08, 0.1]], { tint: 0.95 });
+      this.slab(L.pierW, L.pierH, L.pierW, X(xc), y + L.pierH / 2, pz, { tint: 0.98, bevel: 0.05 });
+      for (let f = 0; f < 4; f++) { const a = f * Math.PI / 2; this.panel(X(xc) + Math.sin(a) * L.pierW / 2, y + L.pierH / 2, pz + Math.cos(a) * L.pierW / 2, L.pierW * 0.7, L.pierH * 0.78, a); }
+      const yc = this.moulding(X(xc), y + L.pierH, pz, L.pierW + 0.3, L.pierW + 0.3, [[0.1, 0.08], [0, 0.22]], { tint: 1.06 });
+      this.slab(L.pierW * 0.6, 0.18, L.pierW * 0.6, X(xc), yc + 0.09, pz, { tint: 1.0, bevel: 0.04 });
+      this.landmarks.push({ name: 'pier', x: X(xc), z: pz });
+      this.candleCluster(X(xi + 0.25), L.bCurbH, pz + 0.5, 3, 0.15, 0.3);
+    }
+    if (ret) {
+      const [rz, len, h] = ret; let x = xc + L.wallT / 2;
+      while (x < xc + len) { const w = P.range(r, 0.6, 1.1), hh = h * P.range(r, 0.45, 1); this.slab(w - 0.04, hh, L.wallT * 0.8, X(x + w / 2), hh / 2, rz, { tint: P.range(r, 0.78, 1.0), bevel: 0.04 }); x += w; }
+    }
+  }
   architecture() {
     const L = this.L, BZ = L.backZ;
+    if (L.style === 2) for (const sx of [-1, 1]) {
+      this.balustrade(sx, L.balU0, L.balU1, { piers: [L.balU1 - L.pierW / 2 - 0.1], ret: [L.balU0 + 0.5, 3.0, L.wallH * 1.4] });
+      this.balustrade(sx, L.balL0, L.balL1, { piers: [L.balL0 + L.pierW / 2 + 0.1, L.balL1 - L.pierW / 2 - 0.4], ret: [L.balL0 + 0.4, 3.2, L.wallH * 1.3] });
+      this.wall(sx * L.outerX, BZ, sx * L.outerX, 16, L.outerH, { thick: 0.9, broken: 0.7, gapsAt: [[1.0, 2.6, 0, 3.2]] });
+      this.rubble(sx * (L.walk + 4.3), 2.6, 1.8, 40); this.bones(sx * (L.walk + 3.6), 3.4, 1.2, 18, 5);
+      this.rubble(sx * (L.walk + 4.7), -4.5, 1.6, 26); this.rubble(sx * (L.walk + 4.2), 9.0, 1.8, 30);
+    }
     if (L.mass) { this.sideMass(-1); this.sideMass(1); }
     // back wall with a recess behind the tabernacle
     this.wall(-15, BZ, -L.recessHalf, BZ, L.backH, { thick: 0.8, broken: 0.15 });
@@ -541,7 +590,7 @@ export class World {
       this.candleCluster(sx * 6.0, 0, BZ + 0.8, 5, 0.35, 0.4); this.bones(sx * 5.4, BZ + 1.1, 0.6, 7, 2);
       this.slab(1.3, 0.6, 0.8, sx * 9.4, 0.3, BZ + 0.7, { tint: 0.9 });
     }
-    for (const sx of (L.sideRange ? [-1, 1] : [])) {
+    for (const sx of (L.sideRange && L.style !== 2 ? [-1, 1] : [])) {
       const r = this.r, X = v => sx * v;
       // upper section: curb along the walkway, broad pier, a low broken wall behind it
       let z = BZ + 0.5;
