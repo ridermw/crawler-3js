@@ -138,19 +138,19 @@ export class World {
   }
 
   materials() {
-    const floor = P.stoneSurface(11, { base: [108, 106, 104], contrast: 1.3, normal: 7, warm: 0.2 });
+    const floor = P.stoneSurface(11, { base: [64, 64, 66], contrast: 1.3, normal: 7, warm: 0.2 });
     const wall = P.stoneSurface(23, { base: [92, 94, 98], contrast: 1.2, cracks: 34, warm: 0.15, normal: 7 });
     const relief = P.gothicRelief(5, { base: [104, 104, 106] });
     const reliefAltar = P.gothicRelief(9, { base: [118, 112, 104], emblem: true });
     const iron = P.rustIron(31), bone = P.boneSurface(41), carpet = P.carpetTex(51);
     const std = (o) => new THREE.MeshStandardMaterial({ roughness: 0.9, metalness: 0, ...o });
     this.mats = {
-      floor: std({ ...floor, vertexColors: true, normalScale: new THREE.Vector2(0.8, 0.8) }),
+      floor: std({ ...floor, vertexColors: true, normalScale: new THREE.Vector2(1.6, 1.6) }),
       stone: std({ ...wall, vertexColors: true, normalScale: new THREE.Vector2(1.2, 1.2) }),
       dark: std({ ...wall, color: '#7b8088', vertexColors: true }),
       relief: std({ ...relief }),
       reliefAltar: std({ ...reliefAltar }),
-      mortar: std({ color: '#2e3034', roughness: 1 }),
+      mortar: std({ color: '#08090a', roughness: 1 }),
       iron: std({ ...iron, metalness: 0.6, vertexColors: true }),
       bone: std({ ...bone, color: '#cfc4a8', roughness: 0.75, vertexColors: true }),
       carpet: std({ ...carpet, vertexColors: true }),
@@ -275,7 +275,7 @@ export class World {
       else if (m < 0.1 && j + 2 < zs.length) { j1 = j + 2; used.add(i + ',' + (j + 1)); }
       const x0 = xs[i], x1 = xs[i1], z0 = zs[j], z1 = zs[j1], cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
       if (inGrate(cx, cz, 0.45)) continue;
-      const inside = inRoom(cx, cz), tint = inside ? P.range(r, 0.78, 1.08) : P.range(r, 0.5, 0.78);
+      const inside = inRoom(cx, cz), tint = inside ? P.range(r, 0.45, 1.2) : P.range(r, 0.5, 0.78);
       const y = -0.1 + (inside ? (r() - 0.5) * 0.03 : (r() - 0.5) * 0.1);
       const opts = { key: 'floor', rx: (r() - 0.5) * 0.02, rz: (r() - 0.5) * 0.02, bevel: 0.04, uv: 2.0 };
       const gap = 0.12;
