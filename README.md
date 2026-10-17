@@ -24,7 +24,7 @@ The game ships **no image, model or audio files**. Every texture, normal and rou
 
 **Touch:** drag on the left of the screen for a virtual stick, tap the floor to walk there, and tap the action-bar slots to cast; abilities auto-aim at the nearest enemy. **MENU** returns to the title. Portrait and landscape are both supported.
 
-Hits restore essence. The Bone Warden casts crimson bolts and summons more thralls; below half health it fires three bolts at a time. Destroy it to win. **Enter** starts a new run after victory or defeat.
+Hits restore essence. Skeletal **thralls** rush you with rusted blades; hooded **bone archers** keep their distance and shoot. The **Bone Warden** fires crimson bolts (3 below half health, 5 below a quarter) and summons more undead. Get close and it telegraphs a **Grave Nova**: a red ring that bursts after 0.8 s, so step out. Destroy the Warden to win. **Enter** (or **AGAIN** on touch) starts a new run after victory or defeat.
 
 Settings (master and ambient volume, window mode, camera drift and vignette) use draft-and-apply: **APPLY** saves them to `localStorage`, and **BACK** / **Esc** throws the draft away.
 
@@ -39,7 +39,7 @@ No bundler and no build step. Three.js r169 loads from a CDN through an import m
 | `src/main.js` | Renderer, post-processing (bloom → `CryptGrade` split-tone and vignette), orthographic camera poses, input, state machine, URL harness and telemetry |
 | `src/pixel.js` | xorshift32 RNG; value noise, Voronoi, crack carving and height→normal maps; stone, iron, bone, cloth, banner, lancet-window, rune and VFX textures; title lockup, dividers, ability icons, orbs, minimap |
 | `src/world.js` | Seeded crypt generator: flagstones, grates, stepped dais, altar and tabernacle, pillars, broken walls, alcoves, balustrades, chains, brazier, rubble and bones (merged per material), instanced candles, moonlight and candle lights, ground fog |
-| `src/combat.js` | Jointed low-poly knight, thralls and warden; abilities, cooldowns, AI, projectiles, VFX and the frozen reference pose |
+| `src/combat.js` | Jointed low-poly knight, thralls, archers and warden; abilities, cooldowns, AI (melee, kiting archer, caster with telegraphed nova), projectiles, hit-stop and flash VFX, the frozen reference pose |
 | `src/ui.js` | Title menu, settings draft/apply, HUD bindings, floating damage numbers |
 | `src/audio.js` | WebAudio drone, wind, drips and bells, plus combat and UI sound effects |
 
@@ -68,7 +68,11 @@ node tools/fidelity/playtest-mobile.mjs            # touch controls on emulated 
 tools/publish.sh && git push -f origin gh-pages     # publish the site files only
 python3 tools/fidelity/overlay.py artifacts/image-run/crypt/clay.png \
   artifacts/validation/tmp/ashen-reliquary-crypt-clay.png --out overlay.jpg
+python3 tools/fidelity/search.py --screen crypt --groups pose,lights,grade --init init.json   # tune camera/grade
+python3 tools/fidelity/diagnose.py --screen crypt  # per-cell edge, HOG, SSIM and Lab diagnostics
 ```
+
+`artifacts/calibration/` holds **positive controls**: independent re-renders of each mock's prompt with the same model. They score 48–64 on the v2 scene-structure metric, while this build scores 70–75, which shows the bar of 75 rewards pixel registration with one image more than design fidelity.
 
 `artifacts/image-run/` holds geometry references made from each mock with `mockui edit`, following the image-run workflow: a tone-matched 4K master, a clean plate with UI and characters removed, a white shadowless clay pass and a depth pass. Prompts, check results and the call ledger are committed; the large PNGs are not. The runtime `?pass=clay` capture is compared against these passes to find layout drift.
 
