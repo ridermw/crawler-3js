@@ -279,6 +279,7 @@ export class Combat {
   reset(snapshot = false) {
     this.clearEnemies();
     for (const p of this.particles) this.group.remove(p.obj); this.particles = [];
+    for (const p of this.pickups || []) this.group.remove(p.obj, p.glow); this.pickups = []; this.hasKey = false;
     const k = this.knight;
     k.dead = false; k.anim = 'idle'; k.animT = 0; k.stun = 0;
     this.cooldowns = Object.fromEntries(ABILITIES.map(a => [a.key, 0]));
@@ -356,6 +357,36 @@ export class Combat {
     if (!a.flashMats) { a.flashMats = []; a.J.root.traverse(o => { if (o.isMesh && !o.userData.isOutline && o.material.isMeshStandardMaterial) { o.material = o.material.clone(); a.flashMats.push(o.material); } }); }
     a.flashT = 0.12; a.flashColor = new THREE.Color(color);
   }
+  // Loot on the floor: a spinning rusted key (first kill) and occasional small crimson vials.
+  dropKey(pos) { this.addPickup('key', pos, '#c08a4a'); }
+  dropVial(pos) { this.addPickup('vial', pos, '#d0383c'); }
+  addPickup(kind, pos, color) {
+    const g = new THREE.Group();
+    if (kind === 'key') {
+      const m = new THREE.MeshStandardMaterial({ color, metalness: 0.6, roughness: 0.5, emissive: '#3a2008' });
+      g.add(new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.03, 6, 12), m));
+      const shaft = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.42, 0.04), m); shaft.position.y = -0.3; g.add(shaft);
+      const bit = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.04), m); bit.position.set(0.06, -0.46, 0); g.add(bit);
+    } else {
+      g.add(new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), new THREE.MeshStandardMaterial({ color, emissive: '#5a0808', roughness: 0.2 })));
+    }
+    g.scale.setScalar(ACTOR_SCALE); g.position.set(pos.x, 0.6 * ACTOR_SCALE, pos.z); this.group.add(g);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.tex.disc, color, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, opacity: 0.6 }));
+    glow.scale.setScalar(0.9); glow.position.copy(g.position); this.group.add(glow);
+    (this.pickups ||= []).push({ kind, obj: g, glow, t: 0 });
+  }
+  updatePickups(dt) {
+    const k = this.knight;
+    for (const p of this.pickups || []) {
+      p.t += dt; p.obj.rotation.y += dt * 2; p.obj.position.y = (0.6 + Math.sin(p.t * 3) * 0.08) * ACTOR_SCALE; p.glow.position.copy(p.obj.position);
+      if (!k.dead && Math.hypot(p.obj.position.x - k.pos.x, p.obj.position.z - k.pos.z) < 0.9 * R) {
+        p.taken = true; this.group.remove(p.obj, p.glow);
+        if (p.kind === 'key') { this.hasKey = true; this.hooks.event?.('loot'); this.hooks.sfx?.('select'); }
+        else { k.hp = Math.min(MAX_HP, k.hp + 12); this.hooks.number?.(k.pos.clone().setY(2.3 * ACTOR_SCALE), '+12', false, '#7fd07f'); this.hooks.sfx?.('vial'); }
+      }
+    }
+    if (this.pickups) this.pickups = this.pickups.filter(p => !p.taken);
+  }
   ring(pos, color, life, size) {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: this.tex.marker, color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
     m.rotation.x = -Math.PI / 2; m.position.copy(pos); this.group.add(m);
@@ -395,7 +426,8 @@ export class Combat {
     this.essence = Math.min(MAX_ES, this.essence + 8);
     if (e.J.outline) e.J.outline.forEach(o => o.visible = false);
     if (e.kind === 'warden') { this.outcome = 'victory'; this.hooks.event?.('victory'); for (const t of this.enemies) if (!t.dead) this.kill(t); }
-    else if (!this.lootShown) { this.lootShown = true; this.hooks.event?.('loot'); }
+    else if (!this.lootShown) { this.lootShown = true; this.dropKey(e.pos); }
+    else if (this.r() < 0.35) this.dropVial(e.pos);
   }
   hurtPlayer(amount) {
     const k = this.knight; if (k.dead || this.outcome) return;
@@ -466,6 +498,7 @@ export class Combat {
       p.obj.material.opacity = p.opacity * Math.min(1, p.life / Math.min(0.25, p.max));
     }
     this.particles = this.particles.filter(p => { if (p.life <= 0) { this.group.remove(p.obj); p.obj.material.dispose(); return false; } return true; });
+    this.updatePickups(dt);
     if (this.pendingHit) { this.pendingHit.t -= dt; if (this.pendingHit.t <= 0) { const f = this.pendingHit.fn; this.pendingHit = null; f(); } }
   }
 
