@@ -665,6 +665,15 @@ export class World {
     if (L.style === 2) for (const sx of [-1, 1]) {
       this.balustrade(sx, L.balU0, L.balU1, { piers: [L.balU1 - L.pierW / 2 - 0.1], ret: [L.balU0 + 0.5, 3.0, L.wallH * 1.4] });
       this.balustrade(sx, L.balL0, L.balL1, { piers: [L.balL0 + L.pierW / 2 + 0.1, L.balL1 - L.pierW / 2 - 0.4], ret: [L.balL0 + 0.4, 3.2, L.wallH * 1.3] });
+      // ruined corner: two tall broken columns and a fallen block in each back corner (measured)
+      for (const [x, z, h, w] of [[9.6, -5.6, 4.4, 0.9], [11.8, -5.0, 4.6, 1.0]]) {
+        this.moulding(sx * x, 0, z, w + 0.4, w + 0.4, [[0, 0.3], [0.1, 0.12]], { tint: 0.9 });
+        let y = 0.42, k = 0;
+        while (y < h - 0.2) { const hh = Math.min(P.range(this.r, 0.5, 0.8), h - y); this.slab(w, hh - 0.03, w, sx * x + (this.r() - 0.5) * 0.06, y + hh / 2, z + (this.r() - 0.5) * 0.06, { tint: P.range(this.r, 0.8, 1.05), bevel: 0.05, rz: k++ > 3 ? (this.r() - 0.5) * 0.08 : 0 }); y += hh; }
+        this.slab(w * 0.7, 0.4, w * 0.5, sx * x + 0.1, h + 0.05, z, { rz: sx * 0.4, rx: 0.2, tint: 0.95 });
+      }
+      this.slab(1.4, 1.6, 1.0, sx * 10.8, 0.8, -4.4, { ry: 0.2, rz: sx * 0.08, tint: 0.85 });
+      this.debris(sx * 10.6, -3.4, 1.4, 10);
       this.sideWall(sx);
       this.wall(sx * L.outerX, BZ + L.sideLen, sx * L.outerX, 16, L.outerH * 0.4, { thick: 0.9, broken: 0.8 });
       this.rubble(sx * (L.walk + 4.3), 2.6, 1.8, 40); this.bones(sx * (L.walk + 3.2), 3.4, 1.6, 40, 14); this.bones(sx * (L.walk + 2.6), -5.6, 1.0, 20, 6);

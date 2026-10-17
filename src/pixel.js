@@ -554,14 +554,16 @@ export function drawMinimap(c, data) {
   g.strokeStyle = '#6e5a36'; g.lineWidth = 1; g.strokeRect(5.5, 5.5, W - 11, H - 11);
   g.fillStyle = '#a8864a';
   for (const [x, y] of [[5, 5], [W - 5, 5], [5, H - 5], [W - 5, H - 5]]) { g.beginPath(); g.moveTo(x, y - 4); g.lineTo(x + 4, y); g.lineTo(x, y + 4); g.lineTo(x - 4, y); g.closePath(); g.fill(); }
-  const sx = W / 26, ox = W / 2, oz = H * 0.42;
+  const sx = W / 28, ox = W / 2, oz = H * 0.36;
   const P = (x, z) => [ox + x * sx, oz + z * sx * 0.92];
-  const room = [[-3.2, -9], [3.2, -9], [3.2, -5.4], [5.6, -5.4], [5.6, -3.4], [8.6, -3.4], [8.6, -1.4], [11, -1.4], [11, 2.6], [8.6, 2.6], [8.6, 5], [4, 5], [4, 13.5], [-4, 13.5], [-4, 5], [-8.6, 5], [-8.6, 2.6], [-11, 2.6], [-11, -1.4], [-8.6, -1.4], [-8.6, -3.4], [-5.6, -3.4], [-5.6, -5.4], [-3.2, -5.4]];
+  // the arena as built: walkway |x| < 7.7 from the altar platform to the foreground, side bays
+  // opening at z 1.8-6.0, and the altar recess
+  const room = [[-3.8, -9.2], [3.8, -9.2], [3.8, -8.3], [7.7, -8.3], [7.7, 1.8], [12, 1.8], [12, 6.0], [7.7, 6.0], [7.7, 14], [-7.7, 14], [-7.7, 6.0], [-12, 6.0], [-12, 1.8], [-7.7, 1.8], [-7.7, -8.3], [-3.8, -8.3]];
   g.beginPath(); room.forEach(([x, z], k) => { const [px, py] = P(x, z); k ? g.lineTo(px, py) : g.moveTo(px, py); }); g.closePath();
   g.fillStyle = '#262a2f'; g.fill(); g.strokeStyle = '#9a9ea2'; g.lineWidth = 1.6; g.stroke();
   g.strokeStyle = 'rgba(154,158,162,0.25)'; g.lineWidth = 1;
-  for (const [x0, z0, x1, z1] of [[-8.6, -1.4, 8.6, -1.4], [-8.6, 2.6, 8.6, 2.6], [-4, 5, 4, 5]]) { const [a, b] = P(x0, z0), [c2, d] = P(x1, z1); g.beginPath(); g.moveTo(a, b); g.lineTo(c2, d); g.stroke(); }
-  g.fillStyle = '#3a4048'; for (const [x, z] of [[-7.9, -2.4], [7.9, -2.4], [-10.3, 5.3], [10.3, 5.3]]) { const [px, py] = P(x, z); g.fillRect(px - 3, py - 3, 6, 6); }
+  for (const [x0, z0, x1, z1] of [[-7.7, 1.8, 7.7, 1.8], [-7.7, 6.0, 7.7, 6.0], [-2.9, -5.55, 2.9, -5.55]]) { const [a, b] = P(x0, z0), [c2, d] = P(x1, z1); g.beginPath(); g.moveTo(a, b); g.lineTo(c2, d); g.stroke(); }
+  g.fillStyle = '#3a4048'; for (const [x, z] of [[-8.9, 1.0], [8.9, 1.0], [-8.9, 6.8], [8.9, 6.8], [-8.9, 12.2], [8.9, 12.2]]) { const [px, py] = P(x, z); g.fillRect(px - 3, py - 3, 6, 6); }
   const [axp, azp] = P(0, -6.9);
   g.fillStyle = '#D69A45'; g.beginPath(); g.moveTo(axp, azp - 6); g.lineTo(axp + 6, azp); g.lineTo(axp, azp + 6); g.lineTo(axp - 6, azp); g.closePath(); g.fill();
   g.fillStyle = '#d0302c';
