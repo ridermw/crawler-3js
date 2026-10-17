@@ -26,7 +26,10 @@ const FROZEN_TIME = 1.7;
 // ---------------------------------------------------------------- renderer & post
 const canvas = document.getElementById('game');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', preserveDrawingBuffer: FREEZE });
-renderer.setPixelRatio(FREEZE ? 1 : Math.min(window.devicePixelRatio, 1.5));
+// phones render at 1x (their GPUs are fill-rate bound and the HUD is DOM, so it stays sharp)
+const SMALL_TOUCH = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600;
+renderer.setPixelRatio(FREEZE || SMALL_TOUCH ? 1 : Math.min(window.devicePixelRatio, 1.5));
+if (SMALL_TOUCH) renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
