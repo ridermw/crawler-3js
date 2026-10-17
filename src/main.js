@@ -296,7 +296,10 @@ function frame(now) {
     combat.update(dt, { move: readMove(), dest: pendingDest, cast: pendingCast, aim: touchMode ? nearestEnemy() : mouse.ground }, time);
     pendingDest = null; pendingCast = null;
     const k = combat.knight.pos, P = POSES.crypt;
-    const tx = THREE.MathUtils.clamp(k.x, -3, 3), tz = THREE.MathUtils.clamp(k.z, -1, 5.5);
+    // follow the knight, keeping the same framing offset the reference pose has (knight at frame
+    // centre-below when it stands at the snapshot spot), clamped so the room edges stay in view
+    const off = P.target.z - 6.4;
+    const tx = THREE.MathUtils.clamp(k.x * 0.8, -3, 3), tz = THREE.MathUtils.clamp(k.z + off, -4, 5.5);
     if (!FREEZE) cam.target.lerp(new THREE.Vector3(tx, P.target.y, tz), 1 - Math.exp(-dt * 4));
   }
   if (!FREEZE && state !== 'crypt') {
