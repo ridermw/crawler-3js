@@ -149,7 +149,7 @@ export class World {
       dark: std({ ...wall, color: '#7b8088', vertexColors: true }),
       relief: std({ ...relief }),
       reliefAltar: std({ ...reliefAltar }),
-      mortar: std({ color: '#45474b', roughness: 1 }),
+      mortar: std({ color: '#2e3034', roughness: 1 }),
       iron: std({ ...iron, metalness: 0.6, vertexColors: true }),
       bone: std({ ...bone, color: '#cfc4a8', roughness: 0.75, vertexColors: true }),
       carpet: std({ ...carpet, vertexColors: true }),
@@ -257,27 +257,24 @@ export class World {
     const inRoom = (x, z) => WALK.some(w => x > w.x0 - 0.6 && x < w.x1 + 0.6 && z > w.z0 - 1.6 && z < w.z1 + 0.6);
     // Flagstones: a near-regular ~0.95 m grid with straight seams, as in the reference clay pass.
     // Some neighbouring cells merge into long slabs, a few split; each slab settles a little.
-    const P0 = 0.95, xs = [], zs = [];
+    const P0 = 0.85, xs = [], zs = [];
     for (let x = -16.6; x <= 16.6; x += P0) xs.push(x + (r() - 0.5) * 0.06);
-    for (let z = -10.0; z <= 18.5; z += P0 * P.range(r, 0.95, 1.12)) zs.push(z);
+    for (let z = -10.0; z <= 18.5; z += P0 * P.range(r, 0.85, 1.05)) zs.push(z);
     const used = new Set();
     for (let j = 0; j < zs.length - 1; j++) for (let i = 0; i < xs.length - 1; i++) {
       if (used.has(i + ',' + j)) continue;
       let i1 = i + 1, j1 = j + 1;
       const m = r();
-      if (m < 0.18 && i + 2 < xs.length && !used.has(i + 1 + ',' + j)) { i1 = i + 2; used.add(i + 1 + ',' + j); }
-      else if (m < 0.3 && j + 2 < zs.length) { j1 = j + 2; used.add(i + ',' + (j + 1)); }
+      if (m < 0.08 && i + 2 < xs.length && !used.has(i + 1 + ',' + j)) { i1 = i + 2; used.add(i + 1 + ',' + j); }
+      else if (m < 0.1 && j + 2 < zs.length) { j1 = j + 2; used.add(i + ',' + (j + 1)); }
       const x0 = xs[i], x1 = xs[i1], z0 = zs[j], z1 = zs[j1], cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
       if (inGrate(cx, cz, 0.45)) continue;
       const inside = inRoom(cx, cz), tint = inside ? P.range(r, 0.78, 1.08) : P.range(r, 0.5, 0.78);
       const y = -0.1 + (inside ? (r() - 0.5) * 0.03 : (r() - 0.5) * 0.1);
       const opts = { key: 'floor', rx: (r() - 0.5) * 0.02, rz: (r() - 0.5) * 0.02, bevel: 0.04, uv: 2.0 };
-      const gap = 0.06;
-      if (r() < 0.08) { // split stone
-        const f = P.range(r, 0.4, 0.6), xm = x0 + (x1 - x0) * f;
-        this.slab(xm - x0 - gap, 0.2, z1 - z0 - gap, (x0 + xm) / 2, y, cz, { ...opts, tint });
-        this.slab(x1 - xm - gap, 0.2, z1 - z0 - gap, (xm + x1) / 2, y - 0.012, cz, { ...opts, tint: tint * 0.92 });
-      } else this.slab(x1 - x0 - gap, 0.2, z1 - z0 - gap, cx, y, cz, { ...opts, tint });
+      const gap = 0.12;
+      if (inside) this.wornSlab(x0 + gap / 2, x1 - gap / 2, z0 + gap / 2, z1 - gap / 2, y + 0.1, tint);
+      else this.slab(x1 - x0 - gap, 0.2, z1 - z0 - gap, cx, y, cz, { ...opts, tint });
     }
     this.b.add('mortar', prep(new THREE.PlaneGeometry(40, 40), { pos: [0, -0.12, 2], rot: [-Math.PI / 2, 0, 0] }));
     // recessed iron grates
@@ -403,6 +400,47 @@ export class World {
     this.slab(w + 0.4, 0.16, 0.34, x, y - h / 2 - 0.08, z, { ry, tint: 1.05 });
   }
   // Square stepped pedestal carrying a short carved column: the four landmarks framing the nave.
+  // A worn flagstone: an irregular polygon (chipped corners, slightly bowed edges) extruded with a
+  // rounded top; often cracked through into two or three pieces that settle at different heights.
+  wornSlab(x0, x1, z0, z1, top, tint) {
+    const r = this.r, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, hw = (x1 - x0) / 2, hd = (z1 - z0) / 2;
+    // walk the outline anticlockwise; each corner is either sharp or chipped (two points), and each
+    // edge midpoint bows in or out a little
+    const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]], ring = [];
+    corners.forEach(([sx, sz], k) => {
+      const [nx, nz] = corners[(k + 1) % 4], [px, pz] = corners[(k + 3) % 4];
+      const chip = r() < 0.45 ? P.range(r, 0.05, 0.14) : 0;
+      if (chip) {
+        // point on the incoming edge, then on the outgoing edge
+        const inX = px === sx ? sx * hw : sx * (hw - chip), inZ = pz === sz ? sz * hd : sz * (hd - chip);
+        const outX = nx === sx ? sx * hw : sx * (hw - chip), outZ = nz === sz ? sz * hd : sz * (hd - chip);
+        ring.push([inX, inZ], [outX, outZ]);
+      } else ring.push([sx * hw, sz * hd]);
+      const bow = P.range(r, -0.03, 0.025);
+      ring.push([(sx + nx) / 2 * hw + (sx === nx ? sx * bow : 0), (sz + nz) / 2 * hd + (sz === nz ? sz * bow : 0)]);
+    });
+    const crack = r() < 0.45;
+    const pieces = [];
+    if (crack) {
+      const t0 = P.range(r, 0.25, 0.75), t1 = P.range(r, 0.25, 0.75);
+      const a = [-hw + 2 * hw * t0, -hd], b = [-hw + 2 * hw * t1, hd], m = [(a[0] + b[0]) / 2 + P.range(r, -0.12, 0.12), 0];
+      const left = ring.filter(([x, z]) => x < a[0] + (b[0] - a[0]) * (z + hd) / (2 * hd));
+      const right = ring.filter(([x, z]) => x >= a[0] + (b[0] - a[0]) * (z + hd) / (2 * hd));
+      const sortA = pts => { const mx = pts.reduce((s2, p) => s2 + p[0], 0) / pts.length, mz = pts.reduce((s2, p) => s2 + p[1], 0) / pts.length; return pts.sort((p, q) => Math.atan2(p[1] - mz, p[0] - mx) - Math.atan2(q[1] - mz, q[0] - mx)); };
+      const g = 0.025;
+      pieces.push(sortA([...left, [a[0] - g, a[1]], [m[0] - g, m[1]], [b[0] - g, b[1]]]));
+      pieces.push(sortA([...right, [a[0] + g, a[1]], [m[0] + g, m[1]], [b[0] + g, b[1]]]));
+    } else {
+      pieces.push(ring);
+    }
+    pieces.forEach((poly, k) => {
+      if (poly.length < 3) return;
+      const shape = new THREE.Shape(poly.map(([x, z]) => new THREE.Vector2(x, -z)));
+      const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.12, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.045, bevelSegments: 2, curveSegments: 1 });
+      const dy = k ? P.range(r, -0.03, 0.01) : 0;
+      this.b.add('floor', prep(geo, { pos: [cx, top - 0.17 + dy, cz], rot: [-Math.PI / 2 + (r() - 0.5) * 0.015, 0, (r() - 0.5) * 0.015], uv: 2.0, tint: tint * P.range(r, 0.93, 1.05) }));
+    });
+  }
   // ---------------------------------------------------------------- gothic kit
   // A square moulding: a stack of thin slabs whose half-widths follow `profile` (outermost first),
   // giving crisp stepped edges that read as carved cornices and plinths.
@@ -553,15 +591,27 @@ export class World {
     for (const pz of piers) {
       const y = this.moulding(X(xc), L.wallH + 0.12, pz, L.pierW + 0.3, L.pierW + 0.3, [[0, 0.16], [0.08, 0.1]], { tint: 0.95 });
       this.slab(L.pierW, L.pierH, L.pierW, X(xc), y + L.pierH / 2, pz, { tint: 0.98, bevel: 0.05 });
-      for (let f = 0; f < 4; f++) { const a = f * Math.PI / 2; this.panel(X(xc) + Math.sin(a) * L.pierW / 2, y + L.pierH / 2, pz + Math.cos(a) * L.pierW / 2, L.pierW * 0.7, L.pierH * 0.78, a); }
+      for (let f = 0; f < 4; f++) { const a = f * Math.PI / 2; this.panel(X(xc) + Math.sin(a) * L.pierW / 2, y + L.pierH / 2, pz + Math.cos(a) * L.pierW / 2, L.pierW * 0.5, L.pierH * 0.78, a); }
+      // engaged columns at the four corners, as on the reference piers
+      for (const [cx, cz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+        const px = X(xc) + cx * (L.pierW / 2 - 0.02), pzz = pz + cz * (L.pierW / 2 - 0.02);
+        this.b.add('stone', prep(new THREE.CylinderGeometry(0.085, 0.085, L.pierH * 0.86, 8), { pos: [px, y + L.pierH / 2, pzz], uv: 1.0, tint: 1.02 }));
+        for (const yy of [y + 0.06, y + L.pierH - 0.06]) this.slab(0.22, 0.08, 0.22, px, yy, pzz, { tint: 1.04, bevel: 0.02 });
+      }
       const yc = this.moulding(X(xc), y + L.pierH, pz, L.pierW + 0.3, L.pierW + 0.3, [[0.1, 0.08], [0, 0.22]], { tint: 1.06 });
       this.slab(L.pierW * 0.6, 0.18, L.pierW * 0.6, X(xc), yc + 0.09, pz, { tint: 1.0, bevel: 0.04 });
       this.landmarks.push({ name: 'pier', x: X(xc), z: pz });
       this.candleCluster(X(xi + 0.25), L.bCurbH, pz + 0.5, 3, 0.15, 0.3);
     }
     if (ret) {
+      // broken return wall: coursed blocks whose height falls away outward, ragged at the top
       const [rz, len, h] = ret; let x = xc + L.wallT / 2;
-      while (x < xc + len) { const w = P.range(r, 0.6, 1.1), hh = h * P.range(r, 0.45, 1); this.slab(w - 0.04, hh, L.wallT * 0.8, X(x + w / 2), hh / 2, rz, { tint: P.range(r, 0.78, 1.0), bevel: 0.04 }); x += w; }
+      while (x < xc + len) {
+        const w = P.range(r, 0.5, 0.9), f = 1 - (x - xc) / len, top = h * (0.35 + 0.65 * f) * P.range(r, 0.8, 1.1);
+        for (let y = 0, c = 0; y < top - 0.1; c++) { const hh = Math.min(0.32, top - y); this.slab(w - 0.04 - (c % 2) * 0.06, hh - 0.025, L.wallT * 0.7, X(x + w / 2), y + hh / 2, rz + (r() - 0.5) * 0.05, { tint: P.range(r, 0.78, 1.0), bevel: 0.03 }); y += hh; }
+        x += w;
+      }
+      this.debris(X(xc + len * 0.6), rz + 0.9, 0.9, 6);
     }
   }
   architecture() {
