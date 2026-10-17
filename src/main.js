@@ -97,7 +97,7 @@ composer.addPass(new OutputPass());
 const POSES = {
   title: { target: new THREE.Vector3(0, -1.25, 0.9), yaw: 9, pitch: 24.5, height: 14, fov: 24, moon: 0.35, hemi: 0.8, candles: 0.8, shade: 0, sat: 0.85, gain: 0.92, lo: [0.86, 0.99, 1.22], hi: [1.04, 1, 0.95] },
   settings: { target: new THREE.Vector3(-3.6, 1.5, -1.75), yaw: 6, pitch: 19.25, height: 13, fov: 2, moon: 2.1, hemi: 1.3, shade: 0.2, sat: 0.5, gain: 0.76, lo: [0.96, 0.99, 1.0] },
-  crypt: { target: new THREE.Vector3(0, 0, 3.44), yaw: 0, pitch: 37.3, height: 16.69, fov: 36.9, fogK: 0.3, moon: 1.1, hemi: 1.3, pool: 7, fill: 1.2, candles: 0.6, shade: 0.05, sat: 0.85, gain: 1, lo: [0.96, 0.99, 1.04], hi: [0.98, 1, 0.95] },
+  crypt: { target: new THREE.Vector3(0, 0, 3.44), yaw: 0, pitch: 37.3, height: 16.69, fov: 36.9, fogK: 0.3, moon: 1.46, hemi: 1.15, pool: 7, fill: 1.2, candles: 0.6, shade: 0.02, sat: 0.78, gain: 1, lo: [0.96, 0.99, 1.04], hi: [0.98, 1, 0.95] },
 };
 const cam = { target: POSES[START].target.clone(), yaw: POSES[START].yaw, pitch: POSES[START].pitch, height: POSES[START].height, fov: POSES[START].fov ?? 4 };
 let shake = 0;
