@@ -250,7 +250,7 @@ export class World {
     const n = Math.floor((yTop - yBottom) / 0.12);
     for (let k = 0; k <= n; k++) this.b.add('iron', prep(new THREE.TorusGeometry(0.07, 0.02, 4, 8), { pos: [x, yTop - k * 0.12, z], rot: [0, k % 2 ? Math.PI / 2 : 0, Math.PI / 2] }));
   }
-  candle(x, y, z, h, radius = 0.05) { this.candles.push({ x, y, z: z + (this.b.dz || 0), h, r: radius * 0.7 }); }
+  candle(x, y, z, h, radius = 0.05) { this.candles.push({ x, y, z: z + (this.b.dz || 0), h: h * 0.75, r: radius * 1.05 }); }
   candleCluster(x, y, z, n, spread, hmax = 0.4) {
     const r = this.r;
     for (let k = 0; k < n; k++) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * spread; this.candle(x + Math.cos(a) * d, y, z + Math.sin(a) * d, P.range(r, 0.1, hmax), P.range(r, 0.035, 0.06)); }
@@ -709,16 +709,16 @@ export class World {
   buildCandles() {
     const n = this.candles.length;
     const waxGeo = new THREE.CylinderGeometry(1, 1, 1, 7); waxGeo.translate(0, 0.5, 0);
-    const wax = new THREE.InstancedMesh(waxGeo, new THREE.MeshStandardMaterial({ color: '#b8a888', roughness: 0.6, emissive: '#3a2008', emissiveIntensity: 0.25 }), n);
+    const wax = new THREE.InstancedMesh(waxGeo, new THREE.MeshStandardMaterial({ color: '#9a7a50', roughness: 0.6, emissive: '#c06a1c', emissiveIntensity: 0.55 }), n);
     // teardrop flame: a sphere drawn up into a point
     const flameGeo = new THREE.SphereGeometry(1, 6, 6); { const fp = flameGeo.attributes.position; for (let i = 0; i < fp.count; i++) { const y = fp.getY(i); if (y > 0) { const k = 1 - y * 0.75; fp.setX(i, fp.getX(i) * k); fp.setZ(i, fp.getZ(i) * k); fp.setY(i, y * 1.6); } } } flameGeo.translate(0, 1, 0);
-    const flame = new THREE.InstancedMesh(flameGeo, new THREE.MeshBasicMaterial({ color: new THREE.Color('#ffd89a').multiplyScalar(2.2), toneMapped: false }), n);
-    const halo = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: this.tex.disc, color: '#e0903a', transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }), n);
+    const flame = new THREE.InstancedMesh(flameGeo, new THREE.MeshBasicMaterial({ color: new THREE.Color('#ff9a30').multiplyScalar(3.2), toneMapped: false }), n);
+    const halo = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: this.tex.disc, color: '#d0701e', transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }), n);
     const puddles = [];
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3();
     this.candles.forEach((c, k) => {
       m.compose(p.set(c.x, c.y, c.z), q.identity(), s.set(c.r, c.h, c.r)); wax.setMatrixAt(k, m);
-      wax.setColorAt(k, new THREE.Color().setHSL(0.1, 0.28, 0.45 + (k * 37 % 17) / 100));
+      wax.setColorAt(k, new THREE.Color().setHSL(0.09, 0.35, 0.38 + (k * 37 % 17) / 120));
       puddles.push(prep(new THREE.CylinderGeometry(c.r * 1.9, c.r * 2.2, 0.02, 7), { pos: [c.x, c.y + 0.01, c.z] }));
       puddles.push(prep(new THREE.SphereGeometry(c.r * 0.55, 4, 3), { pos: [c.x + c.r * 0.9, c.y + c.h * 0.6, c.z], scale: [0.6, 2.2, 0.6] }));
     });
@@ -742,6 +742,8 @@ export class World {
     this.hemi = new THREE.HemisphereLight('#727c86', '#1e1d1c', 1.5); this.scene.add(this.hemi);
     const warm = (x, y, z, i, d = 8, col = '#D69A45') => { const l = new THREE.PointLight(col, i, d, 1.5); l.position.set(x, y, z); l.userData.base = i; this.scene.add(l); this.lights.push(l); return l; };
     warm(0, 3.0, -5.4, 13, 9); warm(-2.4, 1.6, -6.2, 9, 6); warm(2.4, 1.6, -6.2, 9, 6);
+    warm(0, 2.4, -6.8, 16, 4.5); warm(-1.2, 2.2, -7.6, 8, 3.5); warm(1.2, 2.2, -7.6, 8, 3.5);
+    warm(-5.75, 0.8, -7.4, 7, 3.5); warm(5.75, 0.8, -7.4, 7, 3.5);
     warm(-5.0, 1.2, -6.9, 6, 5); warm(5.0, 1.2, -6.9, 6, 5);
     warm(-8.1, 1.6, 1.6, 4, 5); warm(8.8, 1.6, 0.8, 4, 5);
     warm(this.brazier.x, this.brazier.y, this.brazier.z, 7, 6, '#e07a30');
@@ -778,9 +780,9 @@ export class World {
     const { flame, halo } = this.candleMesh, m = new THREE.Matrix4(), s = new THREE.Vector3(), p = new THREE.Vector3(), q = new THREE.Quaternion();
     this.candles.forEach((c, k) => {
       const f = 0.85 + 0.15 * Math.sin(t * 9 + k * 1.7) * Math.sin(t * 5.3 + k * 0.6);
-      m.compose(p.set(c.x, c.y + c.h, c.z), q.identity(), s.set(0.016, 0.03 * f, 0.016)); flame.setMatrixAt(k, m);
+      m.compose(p.set(c.x, c.y + c.h, c.z), q.identity(), s.set(0.024, 0.045 * f, 0.024)); flame.setMatrixAt(k, m);
       if (camera) q.copy(camera.quaternion);
-      const hs = 0.26 * (0.9 + 0.1 * f);
+      const hs = 0.34 * (0.9 + 0.1 * f);
       m.compose(p.set(c.x, c.y + c.h + 0.05, c.z), q, s.set(hs, hs, hs)); halo.setMatrixAt(k, m);
       q.identity();
     });

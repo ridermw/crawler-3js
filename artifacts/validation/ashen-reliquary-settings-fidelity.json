@@ -8,66 +8,66 @@
       "uiContent": true,
       "uiPlacement": true
     },
-    "overallScore": 80.19411075681901,
+    "overallScore": 77.58428036911688,
     "passed": false
   },
   "legacy": {
     "cells": [
       {
         "column": 0,
-        "deficit": 0.009766803840877913,
-        "ratioPercent": 68.82661996497373,
+        "deficit": 0.011248285322359396,
+        "ratioPercent": 64.09807355516637,
         "referenceEdgeDensity": 0.031330589849108366,
         "row": 0,
-        "runtimeEdgeDensity": 0.021563786008230452
+        "runtimeEdgeDensity": 0.02008230452674897
       },
       {
         "column": 1,
-        "deficit": 0.02139917695473252,
-        "ratioPercent": 77.41748697162708,
+        "deficit": 0.02200274348422497,
+        "ratioPercent": 76.78054429646785,
         "referenceEdgeDensity": 0.0947599451303155,
         "row": 0,
-        "runtimeEdgeDensity": 0.07336076817558299
+        "runtimeEdgeDensity": 0.07275720164609054
       },
       {
         "column": 2,
-        "deficit": 0.01887517146776406,
-        "ratioPercent": 69.5575221238938,
+        "deficit": 0.01832647462277092,
+        "ratioPercent": 70.4424778761062,
         "referenceEdgeDensity": 0.062002743484224965,
         "row": 0,
-        "runtimeEdgeDensity": 0.043127572016460905
+        "runtimeEdgeDensity": 0.043676268861454044
       },
       {
         "column": 3,
-        "deficit": -0.0423593964334705,
-        "ratioPercent": 148.21986258588382,
+        "deficit": -0.07006858710562414,
+        "ratioPercent": 179.7626483447845,
         "referenceEdgeDensity": 0.08784636488340192,
         "row": 0,
-        "runtimeEdgeDensity": 0.13020576131687242
+        "runtimeEdgeDensity": 0.15791495198902605
       },
       {
         "column": 4,
-        "deficit": -0.07906721536351166,
-        "ratioPercent": 158.45841784989858,
+        "deficit": -0.1055692729766804,
+        "ratioPercent": 178.05273833671401,
         "referenceEdgeDensity": 0.13525377229080932,
         "row": 0,
-        "runtimeEdgeDensity": 0.21432098765432098
+        "runtimeEdgeDensity": 0.2408230452674897
       },
       {
         "column": 5,
-        "deficit": 0.06315500685871056,
-        "ratioPercent": 45.11206485455412,
+        "deficit": 0.04224965706447188,
+        "ratioPercent": 63.280877443967576,
         "referenceEdgeDensity": 0.11506172839506174,
         "row": 0,
-        "runtimeEdgeDensity": 0.05190672153635117
+        "runtimeEdgeDensity": 0.07281207133058985
       },
       {
         "column": 0,
-        "deficit": 0.04241426611796982,
-        "ratioPercent": 64.12993039443155,
+        "deficit": 0.0423593964334705,
+        "ratioPercent": 64.17633410672855,
         "referenceEdgeDensity": 0.11824417009602195,
         "row": 1,
-        "runtimeEdgeDensity": 0.07582990397805213
+        "runtimeEdgeDensity": 0.07588477366255145
       },
       {
         "column": 1,
@@ -79,140 +79,140 @@
       },
       {
         "column": 2,
-        "deficit": -0.019094650205761315,
-        "ratioPercent": 118.71974179666486,
+        "deficit": -0.032043895747599443,
+        "ratioPercent": 131.41473910704678,
         "referenceEdgeDensity": 0.10200274348422497,
         "row": 1,
-        "runtimeEdgeDensity": 0.12109739368998629
+        "runtimeEdgeDensity": 0.13404663923182442
       },
       {
         "column": 3,
-        "deficit": -0.13986282578875173,
-        "ratioPercent": 260.01255492780916,
+        "deficit": -0.18277091906721535,
+        "ratioPercent": 309.1023226616447,
         "referenceEdgeDensity": 0.0874074074074074,
         "row": 1,
-        "runtimeEdgeDensity": 0.22727023319615913
+        "runtimeEdgeDensity": 0.27017832647462275
       },
       {
         "column": 4,
-        "deficit": 0.030672153635116606,
-        "ratioPercent": 89.50037565740045,
+        "deficit": -0.013113854595336039,
+        "ratioPercent": 104.48910593538692,
         "referenceEdgeDensity": 0.29212620027434844,
         "row": 1,
-        "runtimeEdgeDensity": 0.26145404663923183
+        "runtimeEdgeDensity": 0.3052400548696845
       },
       {
         "column": 5,
-        "deficit": -0.11089163237311386,
-        "ratioPercent": 182.72615636512487,
+        "deficit": -0.13366255144032924,
+        "ratioPercent": 199.71346704871064,
         "referenceEdgeDensity": 0.13404663923182442,
         "row": 1,
-        "runtimeEdgeDensity": 0.24493827160493828
+        "runtimeEdgeDensity": 0.26770919067215365
       },
       {
         "column": 0,
-        "deficit": 0.06814814814814815,
-        "ratioPercent": 53.2027128862095,
+        "deficit": 0.06842249657064473,
+        "ratioPercent": 53.01431801055011,
         "referenceEdgeDensity": 0.1456241426611797,
         "row": 2,
-        "runtimeEdgeDensity": 0.07747599451303155
+        "runtimeEdgeDensity": 0.07720164609053498
       },
       {
         "column": 1,
-        "deficit": 0.01689986282578875,
-        "ratioPercent": 70.69457659372026,
+        "deficit": 0.015418381344307265,
+        "ratioPercent": 73.26355851569933,
         "referenceEdgeDensity": 0.05766803840877915,
         "row": 2,
-        "runtimeEdgeDensity": 0.040768175582990396
+        "runtimeEdgeDensity": 0.04224965706447188
       },
       {
         "column": 2,
-        "deficit": 0.038134430727023313,
-        "ratioPercent": 73.19706903200927,
+        "deficit": 0.034951989026063085,
+        "ratioPercent": 75.43386039336677,
         "referenceEdgeDensity": 0.14227709190672153,
         "row": 2,
-        "runtimeEdgeDensity": 0.10414266117969821
+        "runtimeEdgeDensity": 0.10732510288065844
       },
       {
         "column": 3,
-        "deficit": 0.09432098765432098,
-        "ratioPercent": 60.2818853974122,
+        "deficit": 0.10041152263374487,
+        "ratioPercent": 57.71719038817005,
         "referenceEdgeDensity": 0.23747599451303156,
         "row": 2,
-        "runtimeEdgeDensity": 0.14315500685871058
+        "runtimeEdgeDensity": 0.1370644718792867
       },
       {
         "column": 4,
-        "deficit": 0.1111111111111111,
-        "ratioPercent": 60.09852216748768,
+        "deficit": 0.11253772290809327,
+        "ratioPercent": 59.58620689655172,
         "referenceEdgeDensity": 0.2784636488340192,
         "row": 2,
-        "runtimeEdgeDensity": 0.1673525377229081
+        "runtimeEdgeDensity": 0.16592592592592592
       },
       {
         "column": 5,
-        "deficit": 0.06266117969821675,
-        "ratioPercent": 68.02911534154535,
+        "deficit": 0.06727023319615913,
+        "ratioPercent": 65.67749160134379,
         "referenceEdgeDensity": 0.19599451303155008,
         "row": 2,
-        "runtimeEdgeDensity": 0.13333333333333333
+        "runtimeEdgeDensity": 0.12872427983539095
       },
       {
         "column": 0,
-        "deficit": 0.11193415637860082,
-        "ratioPercent": 21.05263157894737,
+        "deficit": 0.1118792866941015,
+        "ratioPercent": 21.091331269349844,
         "referenceEdgeDensity": 0.1417832647462277,
         "row": 3,
-        "runtimeEdgeDensity": 0.029849108367626886
+        "runtimeEdgeDensity": 0.0299039780521262
       },
       {
         "column": 1,
-        "deficit": 0.014924554183813443,
-        "ratioPercent": 85.90673575129534,
+        "deficit": 0.016680384087791503,
+        "ratioPercent": 84.24870466321242,
         "referenceEdgeDensity": 0.10589849108367627,
         "row": 3,
-        "runtimeEdgeDensity": 0.09097393689986283
+        "runtimeEdgeDensity": 0.08921810699588477
       },
       {
         "column": 2,
-        "deficit": 0.09849108367626885,
-        "ratioPercent": 28.91089108910891,
+        "deficit": 0.09882030178326473,
+        "ratioPercent": 28.673267326732674,
         "referenceEdgeDensity": 0.13854595336076816,
         "row": 3,
-        "runtimeEdgeDensity": 0.04005486968449931
+        "runtimeEdgeDensity": 0.03972565157750343
       },
       {
         "column": 3,
-        "deficit": 0.2513031550068587,
-        "ratioPercent": 2.945539309175673,
+        "deficit": 0.2508093278463649,
+        "ratioPercent": 3.136257681712227,
         "referenceEdgeDensity": 0.25893004115226337,
         "row": 3,
-        "runtimeEdgeDensity": 0.007626886145404664
+        "runtimeEdgeDensity": 0.00812071330589849
       },
       {
         "column": 4,
-        "deficit": 0.20027434842249658,
-        "ratioPercent": 11.665053242981607,
+        "deficit": 0.1957201646090535,
+        "ratioPercent": 13.673765730880929,
         "referenceEdgeDensity": 0.226721536351166,
         "row": 3,
-        "runtimeEdgeDensity": 0.02644718792866941
+        "runtimeEdgeDensity": 0.031001371742112482
       },
       {
         "column": 5,
-        "deficit": 0.19100137174211249,
-        "ratioPercent": 21.5990990990991,
+        "deficit": 0.19116598079561042,
+        "ratioPercent": 21.53153153153153,
         "referenceEdgeDensity": 0.24362139917695474,
         "row": 3,
-        "runtimeEdgeDensity": 0.05262002743484225
+        "runtimeEdgeDensity": 0.05245541838134431
       }
     ],
-    "edgeDensityCoverage": 70.00702740688686,
-    "edgeDistributionSimilarity": 72.94561623542461,
-    "lowFrequencyComposition": 97.16569807926219,
-    "pixelSimilarity": 95.22429657124243,
+    "edgeDensityCoverage": 75.44780198329039,
+    "edgeDistributionSimilarity": 70.80732288777293,
+    "lowFrequencyComposition": 96.87823920911147,
+    "pixelSimilarity": 94.7835588190466,
     "referenceEdgeDensity": 0.1463991769547325,
-    "runtimeEdgeDensity": 0.10248971193415637,
-    "structuralMetric": 72.06403958686329
+    "runtimeEdgeDensity": 0.11045496113397348,
+    "structuralMetric": 72.19946661642817
   },
   "reference": {
     "height": 1024,
@@ -225,15 +225,15 @@
     "width": 1920
   },
   "scene": {
-    "chromaSimilarity": 75.47764436348334,
-    "coarseContrastSsim": 71.72856330871582,
-    "hogOrientationSimilarity": 46.95859621046863,
-    "lumaHistogramSimilarity": 92.74443628353805,
-    "lumaSimilarity": 79.41808207468553,
-    "multiScaleDistribution12x8": 66.18593460970705,
-    "multiScaleEdgeCoverage": 83.80600983501736,
-    "sceneColor": 80.97647365685768,
-    "sceneStructure": 67.77364831729228
+    "chromaSimilarity": 75.2686469496547,
+    "coarseContrastSsim": 69.1171646118164,
+    "hogOrientationSimilarity": 41.70103009337366,
+    "lumaHistogramSimilarity": 92.64756361571234,
+    "lumaSimilarity": 79.92710541595112,
+    "multiScaleDistribution12x8": 60.252160875206286,
+    "multiScaleEdgeCoverage": 75.4564565894676,
+    "sceneColor": 81.01091365605804,
+    "sceneStructure": 61.94866764134855
   },
   "schema": "ashen-reliquary-scene-fidelity/v2",
   "screen": "settings",
@@ -248,14 +248,14 @@
     "elements": [
       {
         "anchor": "safe",
-        "contentScore": 96.78906190138761,
+        "contentScore": 97.06333212150058,
         "id": "settings_panel",
         "matchedFrame": "edge",
         "offsetPx": {
-          "dx": 10.26,
-          "dy": -8.35
+          "dx": 11.22,
+          "dy": -7.98
         },
-        "placementScore": 94.9115749872891,
+        "placementScore": 94.72848690536668,
         "referenceBox": [
           120,
           120,
@@ -270,9 +270,9 @@
         ]
       }
     ],
-    "uiContent": 96.78906190138761,
+    "uiContent": 97.06333212150058,
     "uiFrameMode": "auto",
-    "uiPlacement": 94.9115749872891
+    "uiPlacement": 94.72848690536668
   },
   "workingCanvas": {
     "height": 540,
