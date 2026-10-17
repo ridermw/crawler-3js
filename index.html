@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>The Ashen Reliquary · a Three.js dungeon-crawl proof of concept</title>
+  <meta name="description" content="A single-room action RPG in a ruined cathedral crypt. Every texture, mesh, icon and sound is generated in code at startup.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@400;500;600&display=block" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M8 1l5 7-5 7-5-7z' fill='%238A6A35'/></svg>">
+  <script type="importmap">
+  { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  } }
+  </script>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="fx-layer"></div>
+  <div id="stick" hidden><i></i></div>
+
+  <div id="ui">
+    <!-- ============ TITLE ============ -->
+    <section id="title" class="screen" hidden>
+      <canvas id="titleLockup" class="lockup"></canvas>
+      <canvas id="titleDivider" class="title-divider"></canvas>
+      <div class="subtitle">DESCEND. END THE WARDEN.</div>
+      <nav class="menu" id="titleMenu">
+        <button class="menu-item" data-action="enter">ENTER THE CRYPT</button>
+        <button class="menu-item" data-action="settings">SETTINGS</button>
+        <button class="menu-item" data-action="quit">QUIT</button>
+        <div class="menu-marker"><i></i></div>
+      </nav>
+      <div class="hint-small"><span class="mouse-only">CLICK OR PRESS ENTER</span><span class="touch-only">TAP TO SELECT</span></div>
+      <div class="footer left">A THREE.JS PROOF OF CONCEPT</div>
+      <div class="footer right">v0.1</div>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section id="settings" class="screen" hidden>
+      <div class="panel">
+        <h1>SETTINGS</h1>
+        <div class="panel-sub">Adjust the reliquary before you descend.</div>
+        <canvas class="panel-divider top"></canvas>
+        <h2 class="sec audio">AUDIO</h2>
+        <div class="row slider-row" data-row="0" data-key="master" style="--y:207">
+          <span class="label">MASTER VOLUME</span><span class="value"></span>
+          <div class="track"><div class="fill"></div><div class="thumb"></div></div>
+        </div>
+        <div class="row slider-row" data-row="1" data-key="ambient" style="--y:299">
+          <span class="label">AMBIENT VOLUME</span><span class="value"></span>
+          <div class="track"><div class="fill"></div><div class="thumb"></div></div>
+        </div>
+        <h2 class="sec display">DISPLAY</h2>
+        <div class="row choice-row" data-row="2" data-key="windowMode" style="--y:452">
+          <span class="label">WINDOW MODE</span>
+          <div class="selector"><span data-v="windowed">WINDOWED</span><span data-v="borderless">BORDERLESS</span></div>
+        </div>
+        <div class="row toggle-row" data-row="3" data-key="cameraDrift" style="--y:516">
+          <span class="label">CAMERA DRIFT</span>
+          <div class="toggle"><span class="t"></span><i></i></div>
+        </div>
+        <div class="row toggle-row" data-row="4" data-key="vignette" style="--y:577">
+          <span class="label">VIGNETTE</span>
+          <div class="toggle"><span class="t"></span><i></i></div>
+        </div>
+        <canvas class="panel-divider bottom"></canvas>
+        <div class="actions">
+          <button class="act" data-row="5" data-action="apply">APPLY</button>
+          <button class="act" data-row="6" data-action="back">BACK</button>
+          <div class="act-marker"></div>
+        </div>
+        <div class="help"><span class="mouse-only"><b>Enter</b> Select <b>Esc</b> Back <b>Arrows</b> Navigate</span><span class="touch-only">Tap a row to change it · drag sliders</span></div>
+      </div>
+    </section>
+
+    <!-- ============ COMBAT HUD ============ -->
+    <section id="hud" class="screen" hidden>
+      <div class="objective">
+        <div class="obj-title">ASHEN RELIQUARY</div>
+        <div class="obj-line"><span class="obj-diamond"></span><span id="objText">Destroy the Bone Warden.</span></div>
+      </div>
+      <div class="boss">
+        <div class="boss-name">BONE WARDEN</div>
+        <div class="boss-bar"><div class="boss-fill" id="bossFill"></div><span id="bossPct">63%</span></div>
+      </div>
+      <div class="minimap"><canvas id="minimap" width="221" height="233"></canvas></div>
+      <div class="orb hp"><canvas id="orbHp" width="200" height="200"></canvas><div class="orb-val" id="hpText">82 / 100</div></div>
+      <div class="orb es"><canvas id="orbEs" width="200" height="200"></canvas><div class="orb-val" id="esText">46 / 75</div></div>
+      <div class="loot" id="loot" hidden><canvas id="keyIcon" width="64" height="64"></canvas><span>Rusted Reliquary Key</span></div>
+      <div class="actionbar" id="actionbar"></div>
+      <button class="menu-btn touch-only" id="menuBtn">MENU</button>
+      <div class="banner-msg" id="bannerMsg" hidden><div class="bm-title"></div><div class="bm-sub mouse-only"></div><div class="bm-actions touch-only"><button data-act="again">AGAIN</button><button data-act="title">TITLE</button></div></div>
+    </section>
+
+    <section id="quit" class="screen" hidden>
+      <div class="quit-text">The reliquary awaits your return.</div>
+      <div class="hint-small center">CLICK OR PRESS ANY KEY</div>
+    </section>
+  </div>
+
+  <noscript>This game needs JavaScript and WebGL.</noscript>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
