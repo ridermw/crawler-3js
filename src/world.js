@@ -674,6 +674,11 @@ export class World {
       }
       this.slab(1.4, 1.6, 1.0, sx * 10.8, 0.8, -4.4, { ry: 0.2, rz: sx * 0.08, tint: 0.85 });
       this.debris(sx * 10.6, -3.4, 1.4, 10);
+      // candle-lit arched niche and a small moonlit lancet in the back corner
+      this.archBay(sx * 13.2, BZ + 0.42, 1.6, 3.4, { door: true });
+      this.candleCluster(sx * 13.2, 0, BZ + 0.6, 7, 0.4, 0.4);
+      this.window(sx * 11.9, 2.6, BZ - 0.38, 0.6, 1.5);
+      this.hangingChain(sx * 12.4, BZ + 1.2, 7.5, 1.6);
       this.sideWall(sx);
       this.wall(sx * L.outerX, BZ + L.sideLen, sx * L.outerX, 16, L.outerH * 0.4, { thick: 0.9, broken: 0.8 });
       this.rubble(sx * (L.walk + 4.3), 2.6, 1.8, 40); this.bones(sx * (L.walk + 3.2), 3.4, 1.6, 40, 14); this.bones(sx * (L.walk + 2.6), -5.6, 1.0, 20, 6);
@@ -774,8 +779,8 @@ export class World {
     warm(0, 3.0, -5.4, 13, 9); warm(-2.4, 1.6, -6.2, 9, 6); warm(2.4, 1.6, -6.2, 9, 6);
     warm(0, 2.4, -6.8, 16, 4.5); warm(-1.2, 2.2, -7.6, 8, 3.5); warm(1.2, 2.2, -7.6, 8, 3.5);
     warm(-5.75, 0.8, -7.4, 7, 3.5); warm(5.75, 0.8, -7.4, 7, 3.5);
+    warm(-13.2, 1.0, -7.2, 8, 4.5); warm(13.2, 1.0, -7.2, 8, 4.5);
     warm(-5.0, 1.2, -6.9, 6, 5); warm(5.0, 1.2, -6.9, 6, 5);
-    warm(-8.1, 1.6, 1.6, 4, 5); warm(8.8, 1.6, 0.8, 4, 5);
     warm(this.brazier.x, this.brazier.y, this.brazier.z, 7, 6, '#e07a30');
     // moonlight pooling on the central floor through the broken roof
     const pool = new THREE.SpotLight('#c9d0d5', 0, 0, 0.42, 1, 0);
