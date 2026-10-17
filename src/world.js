@@ -67,9 +67,9 @@ export const LAYOUT = {
   upperEnd: 2,
   upperWallX: 9.1,
   upperWallH: 1.8,
-  plinthW: 1.7,
+  plinthW: 1.3,
   plinthH: 1.6,
-  shaftW: 1.05,
+  shaftW: 0.95,
   pierTop: 3.2,
   pierUX: 9.2,
   pierUZ: 0.5,
@@ -190,6 +190,15 @@ export class World {
   rock(x, z, size, tint = 1) {
     const r = this.r;
     this.b.add('stone', prep(new THREE.IcosahedronGeometry(size, 0), { pos: [x, size * 0.35, z], rot: [r() * 3, r() * 3, r() * 3], scale: [P.range(r, 0.8, 1.4), P.range(r, 0.5, 0.9), P.range(r, 0.8, 1.3)], uv: 1.5, tint: tint * P.range(r, 0.7, 1.1) }));
+  }
+  // Fallen masonry: tilted, half-sunk dressed blocks and slabs, as strewn in the reference.
+  debris(x, z, radius, count) {
+    const r = this.r;
+    for (let k = 0; k < count; k++) {
+      const a = r() * Math.PI * 2, d = Math.sqrt(r()) * radius, w = P.range(r, 0.3, 0.9), h = P.range(r, 0.12, 0.35), dd = P.range(r, 0.25, 0.6);
+      this.slab(w, h, dd, x + Math.cos(a) * d, h * 0.3, z + Math.sin(a) * d, { ry: r() * Math.PI, rx: (r() - 0.5) * 0.6, rz: (r() - 0.5) * 0.6, tint: P.range(r, 0.75, 1.0), bevel: 0.03 });
+    }
+    this.rubble(x, z, radius * 0.8, Math.round(count * 0.8));
   }
   rubble(x, z, radius, count, tint = 1) {
     const r = this.r;
@@ -544,12 +553,10 @@ export class World {
   // ------------------------------------------------------------ props
   props() {
     const r = this.r;
-    // brazier light position kept for the lighting rig (no cage in the reference)
     this.brazier = new THREE.Vector3(9.0, 2.0, -6.0);
-    // debris as placed in the reference: bones and rubble along the walkway edges, at the foot of
-    // the steps and spilling from the sunken bays, plus loose chips across the floor
-    for (const [x, z, rad, n] of [[-6.6, 9.8, 1.0, 24], [-5.8, 12.4, 1.2, 26], [6.2, 9.8, 1.0, 24], [5.2, 12.6, 1.4, 30], [-6.8, 2.4, 0.8, 14], [6.8, 1.8, 0.8, 12], [-4.2, 3.2, 0.6, 8], [3.0, 5.8, 0.5, 6]]) this.rubble(x, z, rad, n);
-    for (const [x, z, rad, n, sk] of [[-6.4, 3.2, 0.9, 14, 3], [6.3, 4.8, 0.8, 12, 2], [-3.4, 5.6, 0.6, 8, 1], [-6.6, 11.0, 0.7, 10, 2], [5.6, 11.6, 0.8, 10, 2], [-9.0, 4.2, 0.6, 8, 2], [9.4, 3.0, 0.6, 8, 2]]) this.bones(x, z, rad, n, sk);
+    // fallen masonry and bone piles at the positions they occupy in the reference clay pass
+    for (const [x, z, rad, n] of [[-7.0, 3.6, 1.1, 10], [-6.4, 9.6, 1.0, 8], [-6.0, 12.6, 1.3, 10], [6.6, 3.4, 1.0, 9], [6.2, 9.6, 1.0, 9], [5.6, 12.4, 1.4, 12], [-7.2, -1.6, 0.8, 5], [7.0, -2.0, 0.8, 5], [-10.8, 2.0, 1.8, 14], [10.8, 2.4, 1.8, 14]]) this.debris(x, z, rad, n);
+    for (const [x, z, rad, n, sk] of [[-6.0, 4.2, 0.9, 14, 3], [6.3, 4.8, 0.8, 12, 2], [-3.4, 5.8, 0.6, 8, 1], [-6.2, 11.0, 0.7, 10, 2], [5.4, 11.6, 0.8, 10, 2], [-9.6, 2.6, 0.9, 12, 3], [9.6, 2.8, 0.9, 12, 3], [-5.4, -4.6, 0.6, 7, 1], [5.6, -4.6, 0.6, 7, 2]]) this.bones(x, z, rad, n, sk);
     for (let k = 0; k < 30; k++) { const x = P.range(r, -6.8, 6.8), z = P.range(r, -4, 13); if (Math.hypot(x, z - 3) > 2.5) this.rock(x, z, P.range(r, 0.04, 0.1)); }
   }
 
