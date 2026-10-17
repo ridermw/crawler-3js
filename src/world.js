@@ -351,7 +351,7 @@ export class World {
     A.set(0, ay + 1.32, az);
     this.obstacles.push({ x: 0, z: -6.9, r: 2.4 }, { x: -2.0, z: -6.4, r: 1.2 }, { x: 2.0, z: -6.4, r: 1.2 });
     // candles on the altar, platform and steps
-    for (let k = 0; k < 18; k++) this.candle(-2.0 + (k % 9) * 0.5 + (r() - 0.5) * 0.12, ay + 1.32, az - 0.4 + Math.floor(k / 9) * 0.95 + (r() - 0.5) * 0.12, P.range(r, 0.12, 0.42), 0.055);
+    for (let k = 0; k < 18; k++) this.candle(-2.0 + (k % 9) * 0.5 + (r() - 0.5) * 0.12, ay + 1.32, az - 0.55 + Math.floor(k / 9) * 0.85 + (r() - 0.5) * 0.12, P.range(r, 0.12, 0.42), 0.055);
     for (let k = 0; k < 6; k++) this.candle(-0.6 + k * 0.24, ty + 0.3, tz + 0.38, P.range(r, 0.1, 0.25), 0.04);
     for (const s2 of [-1, 1]) { this.candleCluster(s2 * 2.35, 0.37, -5.85, 6, 0.35); this.candleCluster(s2 * 2.4, 0.59, -7.8, 4, 0.3, 0.5); }
     this.bones(-2.6, -4.9, 0.6, 7, 2); this.bones(2.7, -4.8, 0.6, 7, 3);

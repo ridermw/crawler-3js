@@ -310,7 +310,7 @@ export class Combat {
     this.warden = this.spawnEnemy('warden', snapshot ? -2.15 : -1.3, snapshot ? -1.1 : -2.2);
     if (snapshot) {
       k.pos.set(-0.35, 0, 6.4); k.facing = 1.93; k.hp = 82; this.essence = 46;
-      this.warden.hp = Math.round(WARDEN_HP * 0.63); this.warden.facing = 0.37; this.warden.play('cast'); this.warden.animT = 0.45;
+      this.warden.hp = Math.round(WARDEN_HP * 0.63); this.warden.facing = 0.25; this.warden.play('cast'); this.warden.animT = 0.45;
       const t1 = this.spawnEnemy('thrall', 3.0, 5.6, 11); t1.facing = -1.9; t1.play('recoil'); t1.animT = 0.08; t1.hp = 22; this.target = t1;
       const t2 = this.spawnEnemy('thrall', -6.0, -1.1, 12); t2.facing = 0.74; t2.walk = 1.3; t2.walkAmt = 1;
       const t3 = this.spawnEnemy('archer', 4.7, -3.2, 13); t3.facing = -0.5;
