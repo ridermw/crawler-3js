@@ -47,6 +47,26 @@ def main():
     table("edge density sigma2, runtime as % of reference", dens(e1R), dens(e1U), ratio=True)
     table("edge density sigma3.5, runtime as % of reference", dens(e2R), dens(e2U), ratio=True)
     print(f"totals s2 ref={e1R[mask].mean():.4f} run={e1U[mask].mean():.4f}  s3.5 ref={e2R[mask].mean():.4f} run={e2U[mask].mean():.4f}")
+    # HOG gradient mass per 6x4 cell (share of total, runtime as % of reference) and per-cell
+    # orientation-histogram similarity; coarse SSIM averaged per cell.
+    def hog_cells(g):
+        f = cv2.GaussianBlur(g.astype(np.float32), (0, 0), 2.2)
+        gx, gy = cv2.Sobel(f, cv2.CV_32F, 1, 0, ksize=3), cv2.Sobel(f, cv2.CV_32F, 0, 1, ksize=3)
+        mag = np.maximum(0, np.hypot(gx, gy) - 12) * mask; b = np.clip(((np.arctan2(gy, gx) % np.pi) / np.pi * 8).astype(int), 0, 7)
+        return grid(lambda ys, xs: np.bincount(b[ys, xs].ravel(), weights=mag[ys, xs].ravel(), minlength=8))
+    hR, hU = hog_cells(gR), hog_cells(gU)
+    tR, tU = sum(h.sum() for row in hR for h in row), sum(h.sum() for row in hU for h in row)
+    table("HOG gradient mass share, runtime as % of reference", [[h.sum() / tR for h in row] for row in hR], [[h.sum() / tU for h in row] for row in hU], ratio=True)
+    sim = lambda a, b: 100 * (1 - 0.5 * np.abs(a / max(a.sum(), 1e-9) - b / max(b.sum(), 1e-9)).sum())
+    print("HOG orientation similarity per cell (shape only)")
+    for r in range(4): print("  " + "  ".join(f"{sim(hR[r][c], hU[r][c]):5.0f} " for c in range(6)))
+    g1 = cv2.resize(cv2.GaussianBlur(gR.astype(np.float32), (0, 0), 3.5), (135, 90), interpolation=cv2.INTER_AREA)
+    g2 = cv2.resize(cv2.GaussianBlur(gU.astype(np.float32), (0, 0), 3.5), (135, 90), interpolation=cv2.INTER_AREA)
+    c2 = (0.03 * 255) ** 2; mu1, mu2 = cv2.GaussianBlur(g1, (7, 7), 1.5), cv2.GaussianBlur(g2, (7, 7), 1.5)
+    s11 = cv2.GaussianBlur(g1 * g1, (7, 7), 1.5) - mu1 ** 2; s22 = cv2.GaussianBlur(g2 * g2, (7, 7), 1.5) - mu2 ** 2; s12 = cv2.GaussianBlur(g1 * g2, (7, 7), 1.5) - mu1 * mu2
+    csm = (2 * s12 + c2) / (s11 + s22 + c2)
+    print("coarse contrast-structure SSIM per cell")
+    for r in range(4): print("  " + "  ".join(f"{100 * csm[r * 90 // 4:(r + 1) * 90 // 4, c * 135 // 6:(c + 1) * 135 // 6].mean():5.0f} " for c in range(6)))
     LR, LU = cv2.cvtColor(R, cv2.COLOR_RGB2LAB).astype(float), cv2.cvtColor(U, cv2.COLOR_RGB2LAB).astype(float)
     for ch, nm in ((0, "L*"), (1, "a*"), (2, "b*")):
         off = 0 if ch == 0 else 128

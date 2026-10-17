@@ -197,7 +197,7 @@ export class World {
     // Irregular flagstones: a jittered lattice whose shared corners make four-sided slabs of uneven
     // shape (no straight seam runs across the room). Each slab is an inset, bevel-free prism that
     // settles slightly; a few slabs crack into two shards.
-    const pitch = 1.05, nx = 30, nz = 27, x0 = -15.5, z0 = -9.6;
+    const pitch = 0.8, nx = 40, nz = 36, x0 = -15.5, z0 = -9.6;
     const jit = [];
     for (let j = 0; j <= nz; j++) { jit.push([]); for (let i = 0; i <= nx; i++) jit[j].push([x0 + i * pitch + (r() - 0.5) * pitch * 0.55, z0 + j * pitch + (r() - 0.5) * pitch * 0.55]); }
     const prism = (pts, y, tint, settleRot) => {
