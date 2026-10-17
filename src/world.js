@@ -54,6 +54,7 @@ class Buckets {
 }
 
 // Walkable footprint of the cruciform crypt (axis-aligned rectangles).
+export let TOP_LIFT = 0.25;
 export const LAYOUT = {
   // fitted to the reference clay pass by tools/fidelity/layoutsearch.py (measured start values)
   walk: 7.7,
@@ -157,6 +158,13 @@ export class World {
       wax: std({ color: '#d9cfb2', roughness: 0.55, vertexColors: true, emissive: '#3a2a10', emissiveIntensity: 0.25 }),
       brass: std({ color: '#8A6A35', roughness: 0.45, metalness: 0.8, vertexColors: true }),
       glow: new THREE.MeshBasicMaterial({ color: '#ffb35a', vertexColors: true, toneMapped: false }),
+    };
+    // stone tops catch the cold sky light (as in the reference): boost up-facing faces of the
+    // stone material in its fragment shader, using the world-space normal
+    this.mats.stone.onBeforeCompile = sh => {
+      sh.uniforms.uTopLift = { value: TOP_LIFT };
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vUpN;').replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nvUpN = normalize(mat3(modelMatrix) * objectNormal).y;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vUpN; uniform float uTopLift;').replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * vec3(0.55, 0.62, 0.7) * uTopLift * smoothstep(0.55, 0.95, vUpN);');
     };
     this.tex = { banner0: P.bannerTex(61, 0), banner1: P.bannerTex(62, 1), lancet: P.lancetTex(71), fog: P.fogTex(81), disc: P.softDisc(128) };
   }
