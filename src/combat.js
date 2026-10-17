@@ -10,7 +10,7 @@ export const ABILITIES = [
   { key: '4', id: 'ward', name: 'Consecration Ward', cd: 16, cost: 30 },
   { key: 'Q', id: 'vial', name: 'Crimson Vial', cd: 20, cost: 0 },
 ];
-const MAX_HP = 100, MAX_ES = 75, WARDEN_HP = 400, THRALL_HP = 60;
+const MAX_HP = 100, MAX_ES = 75, WARDEN_HP = 400, THRALL_HP = 60, ARCHER_HP = 40;
 // Characters are authored at human scale; the crypt reads at a slightly heroic scale.
 const ACTOR_SCALE = 1.6;
 // Reach and body radii were balanced at scale 1.3; R keeps them proportional to the models.
@@ -102,7 +102,7 @@ function buildKnight() {
   return J;
 }
 
-function buildThrall(seed = 1) {
+function buildThrall(seed = 1, archer = false) {
   const m = mats(), root = new THREE.Group(), J = {}, r = P.rng(seed);
   J.hips = joint(root, 0, 0.9, 0);
   part(box(0.3, 0.1, 0.16), m.bone, 0, 0, 0, J.hips);
@@ -132,10 +132,19 @@ function buildThrall(seed = 1) {
     part(cyl(0.025, 0.02, 0.3, 5), m.bone, 0, -0.15, 0, el);
     J[s < 0 ? 'handR' : 'handL'] = joint(el, 0, -0.32, 0);
   }
-  const blade = joint(J.handR, 0, 0, 0);
-  part(box(0.04, 0.16, 0.04), m.leather, 0, 0.02, 0, blade);
-  part(box(0.16, 0.03, 0.04), m.rust, 0, -0.06, 0, blade);
-  part(box(0.07, 0.7, 0.015), m.rust, 0, -0.42, 0, blade);
+  if (archer) {
+    // bone bow held in the left hand, a hood and a quiver
+    const bow = joint(J.handL, 0, 0, 0.04);
+    part(new THREE.TorusGeometry(0.42, 0.02, 4, 14, Math.PI * 0.85), m.boneDark, 0, 0, 0, bow, { rz: Math.PI / 2 + Math.PI * 0.075, ry: Math.PI / 2 });
+    part(cyl(0.004, 0.004, 0.76, 3), m.bone, 0, 0, -0.16, bow);
+    part(cyl(0.07, 0.06, 0.45, 6), m.leather, -0.1, 0.32, -0.14, J.torso, { rz: 0.4 });
+    part(new THREE.ConeGeometry(0.17, 0.3, 7), m.robe, 0, 0.16, -0.02, J.head);
+  } else {
+    const blade = joint(J.handR, 0, 0, 0);
+    part(box(0.04, 0.16, 0.04), m.leather, 0, 0.02, 0, blade);
+    part(box(0.16, 0.03, 0.04), m.rust, 0, -0.06, 0, blade);
+    part(box(0.07, 0.7, 0.015), m.rust, 0, -0.42, 0, blade);
+  }
   J.root = root;
   return J;
 }
@@ -257,9 +266,9 @@ export class Combat {
   }
 
   spawnEnemy(kind, x, z, seed) {
-    const J = kind === 'warden' ? buildWarden() : buildThrall(seed);
+    const J = kind === 'warden' ? buildWarden() : buildThrall(seed, kind === 'archer');
     if (kind === 'warden') J.root.scale.setScalar(0.9 * ACTOR_SCALE);
-    const e = new Actor(J, kind, kind === 'warden' ? WARDEN_HP : THRALL_HP, this.group);
+    const e = new Actor(J, kind, kind === 'warden' ? WARDEN_HP : kind === 'archer' ? ARCHER_HP : THRALL_HP, this.group);
     if (kind !== 'warden') addOutline(J);
     e.pos.set(x, 0, z); e.cd = 1 + this.r() * 1.5; e.castCd = 2.5; e.summonCd = 12;
     this.enemies.push(e); return e;
@@ -280,7 +289,7 @@ export class Combat {
       this.warden.hp = Math.round(WARDEN_HP * 0.63); this.warden.facing = 0.37; this.warden.play('cast'); this.warden.animT = 0.45;
       const t1 = this.spawnEnemy('thrall', 3.0, 5.7, 11); t1.facing = -1.9; t1.play('recoil'); t1.animT = 0.08; t1.hp = 22; this.target = t1;
       const t2 = this.spawnEnemy('thrall', -6.4, -0.1, 12); t2.facing = 0.74; t2.walk = 1.3; t2.walkAmt = 1;
-      const t3 = this.spawnEnemy('thrall', 4.2, -2.0, 13); t3.facing = -0.5;
+      const t3 = this.spawnEnemy('archer', 4.2, -2.0, 13); t3.facing = -0.5;
       k.play('slash'); k.animT = 0.3; this.arcT = 0.12; this.arcFacing = k.facing;
       this.cooldowns['2'] = ABILITIES[1].cd * 0.42; this.cooldowns['3'] = ABILITIES[2].cd * 0.62;
       this.dest = new THREE.Vector3(0.7, 0, 9.0);
@@ -288,7 +297,7 @@ export class Combat {
       this.lootShown = true;
     } else {
       k.pos.set(0, 0, 7.5); k.facing = Math.PI; k.hp = MAX_HP; this.essence = MAX_ES;
-      this.spawnEnemy('thrall', 2.6, -1.0, 11); this.spawnEnemy('thrall', -4.3, -2.3, 12); this.spawnEnemy('thrall', 2.8, -2.8, 13);
+      this.spawnEnemy('thrall', 2.6, -1.0, 11); this.spawnEnemy('thrall', -4.3, -2.3, 12); this.spawnEnemy('archer', 2.8, -2.8, 13);
       this.target = null; this.arcT = 0;
     }
     this.active = true;
@@ -444,9 +453,9 @@ export class Combat {
     // projectiles
     for (const p of this.projectiles) {
       p.life -= dt; p.mesh.position.addScaledVector(p.vel, dt);
-      if (Math.hypot(p.mesh.position.x - k.pos.x, p.mesh.position.z - k.pos.z) < 0.55 && !k.dead) { this.hurtPlayer(p.dmg); p.life = 0; this.burst(p.mesh.position, 8, { tex: this.tex.disc, color: '#ff4030', size: 0.2, life: 0.4, additive: true, speed: 2 }); }
+      if (Math.hypot(p.mesh.position.x - k.pos.x, p.mesh.position.z - k.pos.z) < 0.55 && !k.dead) { this.hurtPlayer(p.dmg); p.life = 0; this.burst(p.mesh.position, 8, { tex: this.tex.disc, color: p.arrow ? '#d8cfb7' : '#ff4030', size: 0.2, life: 0.4, additive: !p.arrow, speed: 2 }); }
       if (!this.world.walkable(p.mesh.position.x, p.mesh.position.z) && p.life < p.max - 0.3) p.life = 0;
-      if (this.r() < 0.6) this.addParticle({ tex: this.tex.disc, color: '#ff3020', pos: p.mesh.position.clone(), size: 0.25, grow: -0.4, life: 0.3, additive: true });
+      if (!p.arrow && this.r() < 0.6) this.addParticle({ tex: this.tex.disc, color: '#ff3020', pos: p.mesh.position.clone(), size: 0.25, grow: -0.4, life: 0.3, additive: true });
     }
     this.projectiles = this.projectiles.filter(p => { if (p.life <= 0) { this.group.remove(p.mesh); return false; } return true; });
     // particles
@@ -495,6 +504,7 @@ export class Combat {
       e.pos.addScaledVector(e.vel, dt); e.vel.multiplyScalar(Math.exp(-dt * 8));
       if (e.stun > 0 || k.dead) { e.walkAmt = Math.max(0, e.walkAmt - dt * 5); }
       else if (e.kind === 'warden') this.wardenAI(e, dt, dx, dz, d);
+      else if (e.kind === 'archer') this.archerAI(e, dt, dx, dz, d);
       else {
         e.face(dx, dz, 1 - Math.exp(-dt * 8));
         if (e.anim === 'attack') {
@@ -513,6 +523,27 @@ export class Combat {
       if (kd < kmin && kd > 1e-3) { e.pos.x = k.pos.x + (e.pos.x - k.pos.x) / kd * kmin; e.pos.z = k.pos.z + (e.pos.z - k.pos.z) / kd * kmin; }
       this.world.resolve(e.pos, e.radius, eprev);
     }
+  }
+  // Bone archer: keeps 5-8 m away, backs off when crowded, looses a slow pale arrow every ~2.4 s.
+  archerAI(e, dt, dx, dz, d) {
+    e.face(dx, dz, 1 - Math.exp(-dt * 6));
+    if (e.anim === 'attack') {
+      if (e.animT > 0.55 && !e.struck) {
+        e.struck = true;
+        const a = Math.atan2(dx, dz), holder = new THREE.Group();
+        const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.6, 4), mats().bone); shaft.rotation.x = Math.PI / 2;
+        holder.add(shaft); holder.position.set(e.pos.x, 1.0 * ACTOR_SCALE, e.pos.z); holder.rotation.y = a;
+        this.group.add(holder);
+        this.projectiles.push({ mesh: holder, vel: new THREE.Vector3(Math.sin(a) * 9, 0, Math.cos(a) * 9), life: 2.2, max: 2.2, dmg: 9, arrow: true });
+        this.hooks.sfx?.('swing');
+      }
+      if (e.animT > 0.9) e.play('idle');
+      return;
+    }
+    const want = d < 4.5 ? -1 : d > 8 ? 1 : 0;
+    if (want) { const sp = 2.0 * dt * want; e.pos.x += dx / d * sp; e.pos.z += dz / d * sp; e.walk += dt * 7; e.walkAmt = Math.min(1, e.walkAmt + dt * 5); }
+    else e.walkAmt = Math.max(0, e.walkAmt - dt * 5);
+    if (e.cd <= 0 && d < 11) { e.play('attack'); e.struck = false; e.cd = 2.2 + this.r() * 0.6; }
   }
   wardenAI(e, dt, dx, dz, d) {
     e.face(dx, dz, 1 - Math.exp(-dt * 4));
@@ -552,9 +583,9 @@ export class Combat {
       return;
     }
     const cap = e.hp < e.maxHp * 0.5 ? 4 : 3;
-    if (e.summonCd <= 0 && this.enemies.filter(x => !x.dead && x.kind === 'thrall').length < cap) {
+    if (e.summonCd <= 0 && this.enemies.filter(x => !x.dead && x.kind !== 'warden').length < cap) {
       e.summonCd = e.hp < e.maxHp * 0.5 ? 8 : 11; const sp = this.world.spawns[Math.floor(this.r() * this.world.spawns.length)];
-      const t = this.spawnEnemy('thrall', sp[0], sp[1], 20 + Math.floor(this.r() * 1000));
+      const t = this.spawnEnemy(this.r() < 0.3 ? 'archer' : 'thrall', sp[0], sp[1], 20 + Math.floor(this.r() * 1000));
       this.ring(new THREE.Vector3(sp[0], 0.05, sp[1]), '#ff4030', 0.8, 3); this.hooks.sfx?.('summon'); t.cd = 1.5;
     }
     if (e.castCd <= 0 && d < 12) { e.castCd = 2.0 + this.r() * 0.8; e.play('cast'); e.fired = false; return; }
@@ -620,7 +651,12 @@ export class Combat {
     J.torso.rotation.set(0.2 + 0.1 * e.walkAmt, 0, 0); J.head.rotation.set(-0.1, Math.sin(t * 1.3) * 0.1, 0);
     J.shR.rotation.set(-0.5 - Math.sin(e.walk) * 0.4 * e.walkAmt, 0, -0.2); J.elR.rotation.set(-0.7, 0, 0); J.handR.rotation.set(-1.0, 0, 0);
     J.shL.rotation.set(-0.7 + Math.sin(e.walk) * 0.4 * e.walkAmt, 0, 0.25); J.elL.rotation.set(-0.8, 0, 0); J.handL.rotation.set(0, 0, 0);
-    if (e.anim === 'attack') {
+    if (e.anim === 'attack' && e.kind === 'archer') {
+      const draw = ease(t / 0.5);
+      J.shL.rotation.set(-1.5, 0, 0.1); J.elL.rotation.set(0, 0, 0);
+      J.shR.rotation.set(-1.5, 0, -0.1); J.elR.rotation.set(-1.4 * draw, 0, 0);
+      J.torso.rotation.set(0.1, 0.3, 0);
+    } else if (e.anim === 'attack') {
       const up = ease(t / 0.4), down = ease((t - 0.4) / 0.12);
       J.shR.rotation.x = lerp(lerp(-0.5, -2.7, up), -0.6, down); J.elR.rotation.x = lerp(-0.2, -0.3, down); J.torso.rotation.x = lerp(lerp(0.2, -0.1, up), 0.45, down);
     } else if (e.anim === 'recoil') {
