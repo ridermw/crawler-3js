@@ -298,6 +298,36 @@ window.__crawlerProject = (x, z) => project(new THREE.Vector3(x, 0.5, z));
 window.__crawlerProjectXYZ = (x, y, z) => project(new THREE.Vector3(x, y, z));
 window.__crawlerLandmarks = () => world.landmarks;
 window.__crawlerForceCamera = () => { placeCamera(time); camera.updateMatrixWorld(); };
+// Per-pixel camera distance (metres) of opaque geometry for the centred 3:2 frame, as base64
+// Float32 (row 0 = top). Sprites, glows and transparent planes are skipped. Used by tools/fidelity/depthdiff.
+window.__crawlerDepth = (w = 768, h = 512) => {
+  const rt = new THREE.WebGLRenderTarget(w, h, { type: THREE.FloatType });
+  const mat = new THREE.ShaderMaterial({
+    vertexShader: 'varying vec3 vW; void main(){ vec4 wp = modelMatrix * vec4(position,1.0); vW = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }',
+    fragmentShader: 'uniform vec3 eye; varying vec3 vW; void main(){ gl_FragColor = vec4(distance(vW, eye), 0.0, 0.0, 1.0); }',
+    uniforms: { eye: { value: camera.position } }, side: THREE.DoubleSide,
+  });
+  const imat = mat.clone(); imat.vertexShader = 'varying vec3 vW; void main(){ vec4 wp = modelMatrix * instanceMatrix * vec4(position,1.0); vW = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }';
+  const saved = [];
+  scene.traverse(o => {
+    if (!(o.isMesh || o.isSprite || o.isPoints)) return;
+    const m = Array.isArray(o.material) ? o.material[0] : o.material;
+    saved.push([o, o.material, o.visible]);
+    if (o.isSprite || o.isPoints || m.transparent || m.blending === THREE.AdditiveBlending || (m.isMeshBasicMaterial && o.name !== 'glow')) { o.visible = false; return; }
+    o.material = o.isInstancedMesh ? imat : mat;
+  });
+  const bg = scene.background, fog = scene.fog; scene.background = null; scene.fog = null;
+  // frame the 3:2 region exactly: same vertical fov, aspect 1.5
+  const cam = camera.clone(); cam.aspect = 1.5; cam.updateProjectionMatrix();
+  renderer.setRenderTarget(rt); renderer.setClearColor(0x000000, 0); renderer.clear(); renderer.render(scene, cam); renderer.setRenderTarget(null);
+  for (const [o, m, v] of saved) { o.material = m; o.visible = v; }
+  scene.background = bg; scene.fog = fog;
+  const buf = new Float32Array(w * h * 4); renderer.readRenderTargetPixels(rt, 0, 0, w, h, buf); rt.dispose();
+  const out = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) out[y * w + x] = buf[((h - 1 - y) * w + x) * 4] || 1000;
+  const u8 = new Uint8Array(out.buffer); let bin = ''; for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+  return btoa(bin);
+};
 // Inverse of the above for layout work: normalised 3:2-frame coords (u, v in 0..1) -> floor x, z at height y.
 window.__crawlerUnproject = (u, v, y = 0) => {
   const fw = Math.min(innerWidth, innerHeight * 1.5), fx = (innerWidth - fw) / 2 + u * fw, fy = v * innerHeight;

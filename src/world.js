@@ -54,8 +54,8 @@ class Buckets {
 
 // Walkable footprint of the cruciform crypt (axis-aligned rectangles).
 const WALK = [
-  { x0: -6.6, x1: 6.6, z0: -4.2, z1: 13.5 },    // nave
-  { x0: -12.2, x1: 12.2, z0: 1.4, z1: 5.0 },    // side bays between the flanking walls
+  { x0: -7.2, x1: 7.2, z0: -5.4, z1: 13.5 },    // walkway between the side ranges
+  { x0: -12.6, x1: 12.6, z0: 1.4, z1: 3.0 },    // openings onto the sunken side bays
 ];
 
 export class World {
@@ -69,14 +69,12 @@ export class World {
     this.candles = [];
     this.lights = [];
     this.anim = [];
-    this.grates = [[5.4, 0.1], [-5.0, 5.4]];
-    this.altar = new THREE.Vector3(0, 0.75, -6.55);
-    this.SANCTUM_DZ = 0.8;
+    this.grates = [[5.4, 0.1], [-5.2, 5.45]];
+    this.altar = new THREE.Vector3(0, 1.76, -6.65);
     this.spawns = [[-6.0, -2.5], [11.0, 3.0], [-11.0, 3.0]];
     this.materials();
     this.floor();
-    this.b.dz = this.SANCTUM_DZ; this.sanctum(); this.b.dz = 0;
-    this.altar.z += this.SANCTUM_DZ;
+    this.sanctum();
     this.landmarks.push({ name: 'altar', x: 0, z: this.altar.z }, ...this.grates.map(([x, z]) => ({ name: 'grate', x, z })));
     this.architecture();
     this.props();
@@ -239,60 +237,49 @@ export class World {
   }
 
   // ------------------------------------------------------------ sanctum, dais, altar, tabernacle
+  // Measured from the reference clay through the fitted camera: a 5.6 m wide platform whose front
+  // is at z -5.55 (0.37 m high) with three steps descending to z -4.43 in the centre, the altar
+  // block (front z -5.4, top 1.75 m, 3.5 m wide) and a spired tabernacle at the back (z -8.2).
   sanctum() {
-    const r = this.r, A = this.altar, dz0 = -8.6, dz1 = -5.3, dw = 3.4;
-    // three-step dais
-    for (let s = 0; s < 3; s++) {
-      const y = s * 0.25, front = dz1 - s * 0.42, half = dw - s * 0.35;
-      let x = -half;
-      while (x < half - 0.01) {
-        const w = Math.min(half - x, P.range(r, 0.8, 1.4));
-        this.slab(w - 0.04, 0.25, front - dz0, x + w / 2, y + 0.125, (front + dz0) / 2, { tint: P.range(r, 0.85, 1.1), bevel: 0.04 });
-        x += w;
-      }
+    const r = this.r, A = this.altar;
+    const run = (x0, x1, z0, z1, y, h, tint = 1) => {
+      let x = x0;
+      while (x < x1 - 0.05) { const w = Math.min(P.range(r, 0.7, 1.3), x1 - x); this.slab(w - 0.04, h, z1 - z0 - 0.04, x + w / 2, y + h / 2, (z0 + z1) / 2, { tint: tint * P.range(r, 0.85, 1.08), bevel: 0.04 }); x += w; }
+    };
+    run(-2.9, 2.9, -8.4, -5.55, 0, 0.37);                       // platform
+    run(-2.0, 2.0, -5.55, -5.15, 0, 0.27, 0.95);                 // steps
+    run(-1.9, 1.9, -5.15, -4.8, 0, 0.18, 0.95);
+    run(-1.8, 1.8, -4.8, -4.43, 0, 0.09, 0.95);
+    run(-2.6, 2.6, -8.4, -5.85, 0.37, 0.22, 1.02);              // altar plinth
+    // altar block
+    const ay = 0.59, az = -6.65;
+    this.slab(3.3, 0.15, 1.75, 0, ay + 0.075, az, { tint: 0.92 });
+    this.slab(3.0, 0.88, 1.45, 0, ay + 0.59, az, { tint: 1.0 });
+    this.slab(3.5, 0.14, 1.8, 0, ay + 1.1, az, { tint: 1.06 });
+    for (let k = -1; k <= 1; k++) this.panel(k * 0.98, ay + 0.6, az + 0.73, 0.82, 0.72, 0);
+    for (const s2 of [-1, 1]) this.panel(s2 * 1.5, ay + 0.6, az, 1.1, 0.72, s2 * Math.PI / 2);
+    // tabernacle with spire, flanked by two tall pinnacles
+    const tz = -7.9, ty = ay + 1.17;
+    this.slab(2.0, 0.55, 0.9, 0, ty + 0.275, tz, { tint: 0.95 });
+    this.slab(1.1, 1.5, 0.7, 0, ty + 1.3, tz, { tint: 1.0 });
+    this.panel(0, ty + 1.3, tz + 0.35, 0.8, 1.2, 0);
+    this.b.add('glow', prep(new THREE.BoxGeometry(0.06, 0.55, 0.02), { pos: [0, ty + 1.3, tz + 0.38], tint: [1, 0.8, 0.45] }));
+    this.b.add('glow', prep(new THREE.BoxGeometry(0.3, 0.06, 0.02), { pos: [0, ty + 1.42, tz + 0.38], tint: [1, 0.8, 0.45] }));
+    this.b.add('stone', prep(new THREE.ConeGeometry(0.62, 1.1, 4), { pos: [0, ty + 2.6, tz], rot: [0, Math.PI / 4, 0], uv: 1.5 }));
+    this.finial(0, ty + 3.1, tz, 1.0);
+    for (const s2 of [-1, 1]) {
+      this.slab(0.3, 2.3, 0.3, s2 * 0.78, ty + 1.15, tz, { tint: 0.92 });
+      this.finial(s2 * 0.78, ty + 2.3, tz, 0.9);
+      this.slab(0.24, 1.4, 0.24, s2 * 1.6, ty + 0.7, tz - 0.1, { tint: 0.9 });
+      this.finial(s2 * 1.6, ty + 1.4, tz - 0.1, 0.7);
     }
-    this.b.add('carpet', prep(new THREE.BoxGeometry(1.3, 0.02, 3.6), { pos: [0, 0.76, -6.4] }));
-    for (let s = 0; s < 3; s++) this.b.add('carpet', prep(new THREE.BoxGeometry(1.3, 0.25, 0.02), { pos: [0, s * 0.25 + 0.125, dz1 - s * 0.42 + 0.011] }));
-    // altar block with relief panels
-    const ay = A.y;
-    this.slab(3.3, 0.22, 1.7, A.x, ay + 0.11, A.z - 0.2, { tint: 0.9 });
-    this.slab(2.9, 1.0, 1.25, A.x, ay + 0.72, A.z - 0.2, { tint: 1.0 });
-    this.slab(3.2, 0.16, 1.5, A.x, ay + 1.3, A.z - 0.2, { tint: 1.08 });
-    for (let k = -1; k <= 1; k++) this.b.add('reliefAltar', prep(new THREE.PlaneGeometry(0.82, 0.86), { pos: [A.x + k * 0.92, ay + 0.72, A.z - 0.2 + 0.63] }));
-    for (const s of [-1, 1]) this.b.add('reliefAltar', prep(new THREE.PlaneGeometry(0.9, 0.86), { pos: [A.x + s * 1.46, ay + 0.72, A.z - 0.2], rot: [0, s * Math.PI / 2, 0] }));
-    // gothic reliquary tabernacle behind the altar
-    const tz = A.z - 1.25, ty = ay + 1.38;
-    this.slab(2.2, 0.9, 0.7, 0, ty + 0.45, tz, { tint: 0.95 });
-    this.b.add('reliefAltar', prep(new THREE.PlaneGeometry(0.8, 0.85), { pos: [0, ty + 0.45, tz + 0.36] }));
-    this.slab(1.3, 1.6, 0.55, 0, ty + 1.7, tz, { tint: 1.0 });
-    this.b.add('relief', prep(new THREE.PlaneGeometry(1.0, 1.5), { pos: [0, ty + 1.7, tz + 0.28] }));
-    this.b.add('glow', prep(new THREE.BoxGeometry(0.06, 0.6, 0.02), { pos: [0, ty + 1.7, tz + 0.3], tint: [1, 0.8, 0.45] }));
-    this.b.add('glow', prep(new THREE.BoxGeometry(0.34, 0.06, 0.02), { pos: [0, ty + 1.85, tz + 0.3], tint: [1, 0.8, 0.45] }));
-    this.b.add('stone', prep(new THREE.ConeGeometry(0.75, 1.3, 4), { pos: [0, ty + 3.15, tz], rot: [0, Math.PI / 4, 0], uv: 1.5 }));
-    for (const s of [-1, 1]) {
-      this.slab(0.28, 2.4, 0.28, s * 0.8, ty + 1.2, tz + 0.05, { tint: 0.92 });
-      this.b.add('stone', prep(new THREE.ConeGeometry(0.22, 0.8, 4), { pos: [s * 0.8, ty + 2.8, tz + 0.05], rot: [0, Math.PI / 4, 0], uv: 1.5 }));
-      this.slab(0.22, 1.5, 0.22, s * 1.25, ty + 0.75, tz + 0.05, { tint: 0.9 });
-      this.b.add('stone', prep(new THREE.ConeGeometry(0.17, 0.55, 4), { pos: [s * 1.25, ty + 1.78, tz + 0.05], rot: [0, Math.PI / 4, 0], uv: 1.5 }));
-    }
-    // corner pinnacle posts on the dais
-    for (const [px, pz] of [[-3.0, -5.6], [3.0, -5.6], [-3.0, -8.2], [3.0, -8.2]]) {
-      this.slab(0.5, 0.35, 0.5, px, 0.92, pz, { tint: 0.9 });
-      this.slab(0.34, 1.9, 0.34, px, 2.05, pz, { tint: 1.0 });
-      this.b.add('stone', prep(new THREE.ConeGeometry(0.3, 0.9, 4), { pos: [px, 3.45, pz], rot: [0, Math.PI / 4, 0], uv: 1.5 }));
-      this.candleCluster(px, 0.75, pz + 0.45, 3, 0.2, 0.3);
-      this.obstacles.push({ x: px, z: pz + (this.b.dz || 0), r: 0.45 });
-    }
-    // candles: altar top, steps and dais
-    for (let k = 0; k < 14; k++) this.candle(A.x - 1.4 + (k % 7) * 0.46 + (r() - 0.5) * 0.1, ay + 1.38, A.z - 0.75 + Math.floor(k / 7) * 0.95 + (r() - 0.5) * 0.12, P.range(r, 0.15, 0.42), 0.05);
-    for (let k = 0; k < 8; k++) this.candle(-1.0 + k * 0.28, ty + 0.9, tz + 0.15, P.range(r, 0.1, 0.25), 0.04);
-    for (let s = 0; s < 3; s++) for (const side of [-1, 1]) for (let k = 0; k < 3; k++)
-      this.candle(side * (1.0 + k * 0.5 + r() * 0.3 + s * 0.2), s * 0.25 + 0.25, dz1 - s * 0.42 - 0.2, P.range(r, 0.12, 0.35), 0.045);
-    this.candleCluster(-2.2, 0.75, -6.0, 6, 0.4);
-    this.candleCluster(2.2, 0.75, -6.0, 6, 0.4);
-    this.candleCluster(-2.4, 0.75, -7.6, 5, 0.35, 0.5);
-    this.candleCluster(2.4, 0.75, -7.6, 5, 0.35, 0.5);
-    this.bones(-2.0, -4.7, 0.6, 7, 1); this.bones(2.4, -4.8, 0.5, 5, 2);
+    A.set(0, ay + 1.17, az);
+    this.obstacles.push({ x: 0, z: -6.9, r: 2.4 }, { x: -2.0, z: -6.4, r: 1.2 }, { x: 2.0, z: -6.4, r: 1.2 });
+    // candles on the altar, platform and steps
+    for (let k = 0; k < 16; k++) this.candle(-1.5 + (k % 8) * 0.43 + (r() - 0.5) * 0.1, ay + 1.17, az - 0.55 + Math.floor(k / 8) * 1.05 + (r() - 0.5) * 0.1, P.range(r, 0.12, 0.42), 0.05);
+    for (let k = 0; k < 7; k++) this.candle(-0.9 + k * 0.3, ty + 0.55, tz + 0.3, P.range(r, 0.1, 0.25), 0.04);
+    for (const s2 of [-1, 1]) { this.candleCluster(s2 * 2.35, 0.37, -5.85, 6, 0.35); this.candleCluster(s2 * 2.4, 0.59, -7.8, 4, 0.3, 0.5); }
+    this.bones(-2.6, -4.9, 0.6, 7, 2); this.bones(2.7, -4.8, 0.6, 7, 3);
   }
 
   // ------------------------------------------------------------ walls, pillars, balustrades, alcoves
@@ -431,61 +418,70 @@ export class World {
     for (let z = Math.min(z0, z1) + 1; z < Math.max(z0, z1); z += 1.2) this.obstacles.push({ x, z, r: thick / 2 + (steps ? 0.9 : 0.3) });
     this.candleCluster(x - side * 1.0, 0.6, z0 + Math.sign(z1 - z0) * 0.6, 3, 0.15, 0.3);
   }
+  // A pier as measured: a broad plinth block (top at `py`) carrying a panelled shaft up to `top`.
+  measuredPier(x, z, { pw = 1.7, py = 1.1, top = 3.0, sw = 1.05, broken = false }) {
+    this.moulding(x, 0, z, pw, pw, [[0, py - 0.25], [0.08, 0.12], [0.16, 0.13]], { tint: 0.9 });
+    this.pier(x, z, { w: sw, height: Math.max(0.6, top - py - 0.55), y0: py, broken });
+    this.landmarks.push({ name: 'pier', x, z }); this.obstacles.push({ x, z, r: pw * 0.7 });
+  }
+  // Three rising steps along z on one side of the walkway (inner edge at x = |xi|).
+  sideSteps(sx, xi, z0, z1) {
+    const r = this.r;
+    for (let k = 0; k < 3; k++) {
+      const h = 0.38 * (k + 1), xa = xi + k * 0.85;
+      let z = z0;
+      while (z < z1 - 0.1) { const w = Math.min(P.range(r, 0.9, 1.5), z1 - z); this.slab(0.85 - 0.04, h, w - 0.05, sx * (xa + 0.425), h / 2, z + w / 2, { tint: P.range(r, 0.8, 1.05), bevel: 0.05 }); z += w; }
+    }
+    for (let z = z0; z < z1; z += 0.8) this.obstacles.push({ x: sx * (xi + 1.3), z, r: 1.3 });
+  }
   architecture() {
-    // sanctum: recessed behind the back wall, with moonlit lancet windows
-    this.b.dz = this.SANCTUM_DZ;
-    this.wall(-4.6, -9.1, 4.6, -9.1, 7.5, { thick: 0.8, broken: 0.2, gapsAt: [[1.6, 3.0, 2.6, 6.4], [6.2, 7.6, 2.6, 6.4], [3.9, 5.3, 3.4, 7.5]] });
-    this.window(-2.3, 4.4, -9.08, 1.25, 3.4); this.window(2.3, 4.4, -9.08, 1.25, 3.4); this.window(0, 5.3, -9.08, 1.25, 3.6);
-    this.b.dz = 0;
-    // back wall across the room, tall, with candle niches
-    const BZ = -7.6;
-    this.wall(-13.2, BZ, -4.0, BZ, 7.0, { thick: 0.9, broken: 0.2, gapsAt: [[2.5, 3.7, 0.5, 2.0]] });
-    this.wall(4.0, BZ, 13.2, BZ, 7.0, { thick: 0.9, broken: 0.2, gapsAt: [[5.5, 6.7, 0.5, 2.0]] });
-    for (const sx of [-1, 1]) { this.wall(sx * 4.0, BZ, sx * 4.0, -8.3 + this.SANCTUM_DZ, 7.0, { thick: 0.8, broken: 0.15 }); }
-    this.candleCluster(-10.1, 0.55, BZ, 5, 0.3); this.candleCluster(10.1, 0.55, BZ, 5, 0.3);
-    // tall banner pillars standing against the back wall either side of the altar
-    this.pillar(-5.4, -6.9, 8.5, { banner: 0 });
-    this.pillar(5.4, -6.9, 8.5, { banner: 1 });
-    this.chain(-5.4, 7.6, -6.25, 0, 6.8, -6.6, 1.2); this.chain(5.4, 7.6, -6.25, 0, 6.8, -6.6, 1.2);
-    // side walls with a broken doorway near each back corner
-    for (const sx of [-1, 1]) this.wall(sx * 12.9, BZ, sx * 12.9, 6.0, 5.5, { thick: 0.9, broken: 0.35, gapsAt: [[0.8, 2.3, 0, 3.0]] });
-    // four flanking walls framing the arena: upper pair runs back toward the wall, lower pair
-    // carries the stepped balustrades down to the foreground
-    this.flankWall(-7.9, 0.6, -4.0, -1); this.flankWall(7.9, 0.4, -4.0, 1);
-    this.flankWall(-8.8, 5.8, 12.4, -1, { steps: true, brokenEnd: 1 }); this.flankWall(8.8, 5.8, 12.4, 1, { steps: true, brokenEnd: 1 });
-    for (const sx of [-1, 1]) { this.bones(sx * 10.8, 2.6, 0.7, 10, 2); this.candleCluster(sx * 12.0, 0, -5.8, 6, 0.4, 0.45); }
-    // hanging chains from the vault
-    for (const [x, z, y0, y1] of [[-7.4, -6.9, 11, 4.6], [7.6, -6.7, 11, 5.4], [-2.6, -7.0, 11, 7.0], [11.2, -3.5, 12, 6.2], [-11.4, -3.0, 12, 5.8]]) this.hangingChain(x, z, y0, y1);
+    // back wall at z -8.1 with a recess (|x| < 3.8) behind the tabernacle
+    const BZ = -8.1;
+    this.wall(-15, BZ, -3.8, BZ, 7.0, { thick: 0.8, broken: 0.15 });
+    this.wall(3.8, BZ, 15, BZ, 7.0, { thick: 0.8, broken: 0.15 });
+    this.wall(-3.8, -9.0, 3.8, -9.0, 7.0, { thick: 0.7, broken: 0.1, gapsAt: [[1.2, 2.6, 2.6, 6.2], [5.0, 6.4, 2.6, 6.2], [3.1, 4.5, 3.4, 7.0]] });
+    this.window(-2.4, 4.4, -8.98, 1.15, 3.2); this.window(2.4, 4.4, -8.98, 1.15, 3.2); this.window(0, 5.2, -8.98, 1.15, 3.4);
+    for (const sx of [-1, 1]) {
+      this.wall(sx * 3.8, BZ, sx * 3.8, -9.0, 7.0, { thick: 0.5, broken: 0.05 });
+      // banner pillar standing in front of the wall
+      this.pier(sx * 6.5, -7.6, { w: 1.0, height: 5.6 });
+      this.banner(sx * 4.6, 5.8, -7.65, sx > 0 ? 1 : 0, 1.0, 2.8);
+      this.hangingChain(sx * 5.4, -7.6, 8.5, 2.0); this.hangingChain(sx * 3.9, -7.6, 8.5, 3.2);
+      this.candleCluster(sx * 5.0, 0, -7.3, 5, 0.35, 0.4);
+    }
+    // upper flanking piers with a raised ledge behind them running back to the wall
+    this.measuredPier(-8.1, 0.5, { py: 1.12, top: 3.24 }); this.measuredPier(8.8, -0.3, { py: 1.14, top: 2.73 });
+    this.measuredPier(-8.4, -4.3, { py: 0.8, top: 2.6, pw: 1.4 }); this.measuredPier(8.5, -4.3, { py: 0.8, top: 2.3, pw: 1.4 });
+    for (const sx of [-1, 1]) {
+      const r = this.r;
+      let z = -7.6;
+      while (z < 1.2) { const w = Math.min(P.range(r, 0.9, 1.4), 1.2 - z); this.slab(2.6, 0.5, w - 0.05, sx * 8.6, 0.25, z + w / 2, { tint: P.range(r, 0.8, 1.02), bevel: 0.05 }); z += w; }
+      this.wall(sx * 11.0, -7.6, sx * 11.0, 1.4, 1.8, { thick: 0.9, broken: 0.6 });
+      for (let zz = -7.4; zz < 1.0; zz += 0.8) this.obstacles.push({ x: sx * 8.6, z: zz, r: 1.4 });
+    }
+    // lower flanking piers on the stepped walls, and the near pair at the bottom of the frame
+    this.sideSteps(-1, 7.6, 3.4, 13.5); this.sideSteps(1, 7.5, 3.0, 13.5);
+    this.measuredPier(-9.6, 6.9, { py: 1.15, top: 1.95 + 1.15 }); this.measuredPier(9.6, 7.3, { py: 1.15, top: 3.0 });
+    this.measuredPier(-9.2, 12.3, { py: 1.15, top: 3.6 }); this.measuredPier(9.3, 11.6, { py: 1.15, top: 3.2 });
+    // sunken bays beyond the sides: low broken walls, broken masonry and heaps of bones
+    for (const sx of [-1, 1]) {
+      this.wall(sx * 13.6, BZ, sx * 13.6, 16, 3.2, { thick: 0.9, broken: 0.7, gapsAt: [[1.0, 2.6, 0, 3.2]] });
+      this.wall(sx * 12.0, 0.2, sx * 12.0, 2.6, 1.5, { thick: 0.7, broken: 0.6 });
+      this.rubble(sx * 11.6, 3.0, 1.8, 40); this.bones(sx * 10.9, 3.6, 1.2, 18, 5);
+      this.rubble(sx * 12.0, -4.5, 1.6, 26); this.rubble(sx * 11.5, 9.0, 1.8, 30);
+    }
   }
 
   // ------------------------------------------------------------ props
   props() {
     const r = this.r;
-    this.b.dz = this.SANCTUM_DZ;
-    // fallen fluted column against the right rear wall
-    this.b.add('stone', prep(new THREE.CylinderGeometry(0.42, 0.45, 3.4, 12, 3), { pos: [10.4, 0.45, -6.2], rot: [0, 0.35, Math.PI / 2 - 0.12], uv: 1.6, tint: 0.95 }));
-    this.slab(1.1, 0.4, 1.1, 11.6, 0.2, -6.6, { ry: 0.3, tint: 0.9 });
-    this.rubble(10.6, -5.6, 1.2, 14);
-    // hanging iron brazier cage with embers
-    const bx = 6.6, by = 4.2, bz = -5.4;
-    this.hangingChain(bx, bz, 11, by + 0.8);
-    for (const y of [by - 0.45, by + 0.45]) this.b.add('iron', prep(new THREE.TorusGeometry(0.42, 0.03, 4, 14), { pos: [bx, y, bz], rot: [Math.PI / 2, 0, 0] }));
-    for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; this.b.add('iron', prep(new THREE.CylinderGeometry(0.02, 0.02, 1.0, 4), { pos: [bx + Math.cos(a) * 0.42, by, bz + Math.sin(a) * 0.42] })); }
-    this.b.add('iron', prep(new THREE.ConeGeometry(0.44, 0.4, 10, 1, true), { pos: [bx, by + 0.65, bz] }));
-    this.b.add('glow', prep(new THREE.IcosahedronGeometry(0.18, 1), { pos: [bx, by - 0.3, bz], tint: [1, 0.55, 0.2] }));
-    this.brazier = new THREE.Vector3(bx, by - 0.2, bz + this.SANCTUM_DZ);
-    this.b.dz = 0;
-    // iron candle stands
-    for (const [x, z] of [[-6.6, 6.0], [7.0, 5.0], [-6.2, -5.2], [6.2, -5.2]]) {
-      this.b.add('iron', prep(new THREE.CylinderGeometry(0.04, 0.06, 1.1, 6), { pos: [x, 0.55, z] }));
-      this.b.add('iron', prep(new THREE.CylinderGeometry(0.22, 0.12, 0.08, 8), { pos: [x, 1.12, z] }));
-      this.b.add('iron', prep(new THREE.CylinderGeometry(0.28, 0.32, 0.06, 8), { pos: [x, 0.03, z] }));
-      this.candleCluster(x, 1.16, z, 3, 0.1, 0.3);
-    }
-    // rubble and bone piles: corners, pedestal feet and the foreground flanks
-    for (const [x, z, rad, n] of [[-8.0, 9.6, 1.6, 26], [8.0, 9.0, 1.6, 26], [-6.8, -6.0, 1.0, 12], [-12, 10, 2, 30], [12, 10, 2, 30], [-12.4, -5.4, 1.8, 26], [12.4, -5.4, 1.8, 26], [0.2, -5.0, 0.6, 5], [-9.6, -0.2, 1.0, 12], [9.6, -0.4, 1.0, 12], [-4.2, 12.0, 1.0, 10], [4.6, 12.2, 1.0, 10]]) this.rubble(x, z, rad, n);
-    for (const [x, z, rad, n, sk] of [[-7.6, 1.2, 0.6, 10, 2], [7.8, 1.0, 0.7, 12, 3], [-7.4, 7.6, 0.6, 9, 1], [7.4, 7.0, 0.5, 7, 2], [-5.4, -4.4, 0.4, 5, 1], [-9.0, 11.0, 0.7, 10, 2], [8.8, -5.6, 0.8, 12, 3]]) this.bones(x, z, rad, n, sk);
-    for (let k = 0; k < 30; k++) { const x = P.range(r, -8, 8), z = P.range(r, -5, 12); if (Math.hypot(x, z - 1) > 2.5) this.rock(x, z, P.range(r, 0.04, 0.1)); }
+    // brazier light position kept for the lighting rig (no cage in the reference)
+    this.brazier = new THREE.Vector3(9.0, 2.0, -6.0);
+    // debris as placed in the reference: bones and rubble along the walkway edges, at the foot of
+    // the steps and spilling from the sunken bays, plus loose chips across the floor
+    for (const [x, z, rad, n] of [[-6.6, 9.8, 1.0, 24], [-5.8, 12.4, 1.2, 26], [6.2, 9.8, 1.0, 24], [5.2, 12.6, 1.4, 30], [-6.8, 2.4, 0.8, 14], [6.8, 1.8, 0.8, 12], [-4.2, 3.2, 0.6, 8], [3.0, 5.8, 0.5, 6]]) this.rubble(x, z, rad, n);
+    for (const [x, z, rad, n, sk] of [[-6.4, 3.2, 0.9, 14, 3], [6.3, 4.8, 0.8, 12, 2], [-3.4, 5.6, 0.6, 8, 1], [-6.6, 11.0, 0.7, 10, 2], [5.6, 11.6, 0.8, 10, 2], [-9.0, 4.2, 0.6, 8, 2], [9.4, 3.0, 0.6, 8, 2]]) this.bones(x, z, rad, n, sk);
+    for (let k = 0; k < 30; k++) { const x = P.range(r, -6.8, 6.8), z = P.range(r, -4, 13); if (Math.hypot(x, z - 3) > 2.5) this.rock(x, z, P.range(r, 0.04, 0.1)); }
   }
 
   // ------------------------------------------------------------ candles (instanced)
@@ -521,10 +517,9 @@ export class World {
     this.scene.add(moon, moon.target); this.moon = moon;
     this.hemi = new THREE.HemisphereLight('#727c86', '#1e1d1c', 1.5); this.scene.add(this.hemi);
     const warm = (x, y, z, i, d = 8, col = '#D69A45') => { const l = new THREE.PointLight(col, i, d, 1.5); l.position.set(x, y, z); l.userData.base = i; this.scene.add(l); this.lights.push(l); return l; };
-    const S = this.SANCTUM_DZ;
-    warm(0, 2.6, -5.6 + S, 13, 9); warm(-2.4, 1.5, -6.6 + S, 9, 6); warm(2.4, 1.5, -6.6 + S, 9, 6);
-    warm(-7.4, 1.4, -7.2 + S, 6, 5); warm(7.4, 1.4, -7.2 + S, 6, 5);
-    warm(-10.4, 1.2, -2.4, 5, 5); warm(10.4, 1.2, -2.4, 5, 5);
+    warm(0, 3.0, -5.4, 13, 9); warm(-2.4, 1.6, -6.2, 9, 6); warm(2.4, 1.6, -6.2, 9, 6);
+    warm(-5.0, 1.2, -6.9, 6, 5); warm(5.0, 1.2, -6.9, 6, 5);
+    warm(-8.1, 1.6, 1.6, 4, 5); warm(8.8, 1.6, 0.8, 4, 5);
     warm(this.brazier.x, this.brazier.y, this.brazier.z, 7, 6, '#e07a30');
     // moonlight pooling on the central floor through the broken roof
     const pool = new THREE.SpotLight('#c9d0d5', 0, 0, 0.42, 1, 0);
