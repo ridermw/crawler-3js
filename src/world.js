@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import * as P from './pixel.js';
+import { SIDE_HEIGHTS } from './heightfield.js';
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(), _p = new THREE.Vector3();
 const KEEP = ['position', 'normal', 'uv', 'color'];
@@ -83,6 +84,10 @@ export const LAYOUT = {
   pierBX: 9,
   pierBZ: 12,
   outerX: 13.6,
+  mass: 0,                 // depth-baked side masses (src/heightfield.js); off: scored worse than the measured build
+  hScale: 1,
+  course: 0.35,
+  sideRange: 1,
   outerH: 4.2,
 };
 const WALK = [
@@ -470,8 +475,31 @@ export class World {
     }
     for (let z = z0; z < z1; z += 0.8) this.obstacles.push({ x: sx * (xi + 1.3), z, r: 1.3 });
   }
+  // Side masses built from the reference height map (src/heightfield.js): each 0.5 m column is
+  // quantised to stone courses and consecutive cells along z with the same course count merge into
+  // one longer block, so the result reads as stacked masonry rather than voxels.
+  sideMass(sx) {
+    const L = this.L, r = this.r, d = SIDE_HEIGHTS[sx < 0 ? 'left' : 'right'], c = SIDE_HEIGHTS.cell, course = L.course;
+    d.rows[0].forEach((_, i) => {
+      const x = sx * (d.x0 + i * c);
+      if (Math.abs(x) < L.walk - 0.01) return;
+      let j = 0;
+      while (j < d.rows.length) {
+        const n = Math.round(d.rows[j][i] * 0.05 * L.hScale / course);
+        let k = j + 1;
+        while (k < d.rows.length && k - j < 4 && Math.round(d.rows[k][i] * 0.05 * L.hScale / course) === n) k++;
+        if (n > 0) {
+          const z0 = d.z0 + j * c - c / 2, z1 = d.z0 + (k - 1) * c + c / 2, h = n * course;
+          this.slab(c - 0.04, h - 0.03, z1 - z0 - 0.04, x, h / 2, (z0 + z1) / 2, { tint: P.range(r, 0.78, 1.05), bevel: 0.05 });
+          if (h > 0.45) for (let z = z0 + 0.25; z < z1; z += 0.5) this.obstacles.push({ x, z, r: 0.36 });
+        }
+        j = k;
+      }
+    });
+  }
   architecture() {
     const L = this.L, BZ = L.backZ;
+    if (L.mass) { this.sideMass(-1); this.sideMass(1); }
     // back wall with a recess behind the tabernacle
     this.wall(-15, BZ, -L.recessHalf, BZ, L.backH, { thick: 0.8, broken: 0.15 });
     this.wall(L.recessHalf, BZ, 15, BZ, L.backH, { thick: 0.8, broken: 0.15 });
@@ -479,12 +507,15 @@ export class World {
     this.window(-2.4, 4.4, BZ - 0.88, 1.15, 3.2); this.window(2.4, 4.4, BZ - 0.88, 1.15, 3.2); this.window(0, 5.2, BZ - 0.88, 1.15, 3.4);
     for (const sx of [-1, 1]) {
       this.wall(sx * L.recessHalf, BZ, sx * L.recessHalf, BZ - 0.9, L.backH, { thick: 0.5, broken: 0.05 });
+      // pilasters measured on the reference back wall, banner and chains between the inner pair
       this.pier(sx * L.bannerPierX, BZ + 0.5, { w: 1.0, height: 5.6 });
-      this.banner(sx * L.bannerX, 5.8, BZ + 0.45, sx > 0 ? 1 : 0, 1.0, 2.8);
-      this.hangingChain(sx * (L.bannerX + 0.8), BZ + 0.5, 8.5, 2.0); this.hangingChain(sx * (L.bannerX - 0.7), BZ + 0.5, 8.5, 3.2);
-      this.candleCluster(sx * L.bannerX, 0, BZ + 0.8, 5, 0.35, 0.4);
+      for (const px of [7.3, 9.7, 13.2]) this.pier(sx * px, BZ + 0.35, { w: 0.75, height: 5.0 });
+      this.banner(sx * 6.0, 4.7, BZ + 0.45, sx > 0 ? 1 : 0, 1.15, 3.8);
+      this.hangingChain(sx * 6.8, BZ + 0.5, 8.5, 0.9); this.hangingChain(sx * 5.1, BZ + 0.5, 8.5, 1.4);
+      this.candleCluster(sx * 6.0, 0, BZ + 0.8, 5, 0.35, 0.4); this.bones(sx * 5.4, BZ + 1.1, 0.6, 7, 2);
+      this.slab(1.3, 0.6, 0.8, sx * 9.4, 0.3, BZ + 0.7, { tint: 0.9 });
     }
-    for (const sx of [-1, 1]) {
+    for (const sx of (L.sideRange ? [-1, 1] : [])) {
       const r = this.r, X = v => sx * v;
       // upper section: curb along the walkway, broad pier, a low broken wall behind it
       let z = BZ + 0.5;

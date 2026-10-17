@@ -201,7 +201,15 @@ function applyClay() {
     const m = Array.isArray(o.material) ? o.material[0] : o.material;
     const glow = o.isSprite || o.isPoints || m.transparent || m.blending === THREE.AdditiveBlending || m.isMeshBasicMaterial;
     if (glow) { o.visible = false; return; }
-    if (m.alphaTest > 0 && m.map) { o.material = clay.clone(); o.material.map = m.map; o.material.alphaTest = m.alphaTest; o.material.color.set('#d9d9d9'); o.material.side = m.side; return; }
+    if (m.alphaTest > 0 && m.map) {
+      // keep the cut-out shape but drop the colours: a white copy of the texture with its alpha
+      const src = m.map.image, c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
+      const g = c.getContext('2d'); g.drawImage(src, 0, 0); const d = g.getImageData(0, 0, c.width, c.height);
+      for (let i = 0; i < d.data.length; i += 4) d.data[i] = d.data[i + 1] = d.data[i + 2] = 255;
+      g.putImageData(d, 0, 0);
+      o.material = clay.clone(); o.material.map = new THREE.CanvasTexture(c); o.material.map.colorSpace = THREE.SRGBColorSpace;
+      o.material.alphaTest = m.alphaTest; o.material.side = m.side; return;
+    }
     o.material = clay;
   });
   scene.add(new THREE.AmbientLight('#ffffff', 0.35));

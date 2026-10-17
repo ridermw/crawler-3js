@@ -44,9 +44,10 @@ ELEV = np.array([[0, .1, .1, .5], [.35, .2, .6, .3], [.55, .95, .9, .3], [.8, 1,
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("runtime"); ap.add_argument("--out", required=True); ap.add_argument("--json")
+    ap = argparse.ArgumentParser(); ap.add_argument("runtime"); ap.add_argument("--out", required=True); ap.add_argument("--json"); ap.add_argument("--ref", help="refined reference depth .npy")
     a = ap.parse_args()
     dref, coef = ref_depth_metres()
+    if a.ref: dref = np.load(a.ref).astype(float)
     drun = np.fromfile(a.runtime, np.float32).reshape(H, W).astype(float)
     r = rc.rays(W, H)
     Pref = rc.EYE + r * dref[..., None]; Prun = rc.EYE + r * drun[..., None]
