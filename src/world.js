@@ -154,7 +154,7 @@ export class World {
       reliefAltar: std({ ...reliefAltar }),
       mortar: std({ color: '#08090a', roughness: 1 }),
       iron: std({ ...iron, metalness: 0.6, vertexColors: true }),
-      bone: std({ ...bone, color: '#cfc4a8', roughness: 0.75, vertexColors: true }),
+      bone: std({ ...bone, color: '#8a826e', roughness: 0.8, vertexColors: true }),
       carpet: std({ ...carpet, vertexColors: true }),
       wax: std({ color: '#d9cfb2', roughness: 0.55, vertexColors: true, emissive: '#3a2a10', emissiveIntensity: 0.25 }),
       brass: std({ color: '#8A6A35', roughness: 0.45, metalness: 0.8, vertexColors: true }),
@@ -232,13 +232,13 @@ export class World {
   bones(x, z, radius, count, skulls = 1) {
     const r = this.r;
     for (let k = 0; k < count; k++) {
-      const a = r() * Math.PI * 2, d = Math.sqrt(r()) * radius, bx = x + Math.cos(a) * d, bz = z + Math.sin(a) * d, len = P.range(r, 0.25, 0.55), ry = r() * Math.PI;
-      this.b.add('bone', prep(new THREE.CylinderGeometry(0.025, 0.03, len, 5), { pos: [bx, 0.04 + r() * 0.05, bz], rot: [0, ry, Math.PI / 2 + (r() - 0.5) * 0.3] }));
-      for (const s of [-1, 1]) this.b.add('bone', prep(new THREE.SphereGeometry(0.045, 5, 4), { pos: [bx + Math.cos(ry) * s * len / 2, 0.05, bz - Math.sin(ry) * s * len / 2] }));
+      const a = r() * Math.PI * 2, d = Math.sqrt(r()) * radius, bx = x + Math.cos(a) * d, bz = z + Math.sin(a) * d, len = P.range(r, 0.16, 0.38), ry = r() * Math.PI;
+      this.b.add('bone', prep(new THREE.CylinderGeometry(0.018, 0.022, len, 5), { pos: [bx, 0.03 + r() * 0.04, bz], rot: [0, ry, Math.PI / 2 + (r() - 0.5) * 0.3] }));
+      for (const s of [-1, 1]) this.b.add('bone', prep(new THREE.SphereGeometry(0.032, 5, 4), { pos: [bx + Math.cos(ry) * s * len / 2, 0.035, bz - Math.sin(ry) * s * len / 2] }));
     }
     for (let k = 0; k < skulls; k++) this.skull(x + (r() - 0.5) * radius, z + (r() - 0.5) * radius, r() * 6);
   }
-  skull(x, z, ry, s = 1) {
+  skull(x, z, ry, s = 0.75) {
     this.b.add('bone', prep(new THREE.SphereGeometry(0.13 * s, 8, 6), { pos: [x, 0.12 * s, z], scale: [1, 0.95, 1.15] }));
     this.b.add('bone', prep(new THREE.BoxGeometry(0.16 * s, 0.08 * s, 0.12 * s), { pos: [x + Math.sin(ry) * 0.08 * s, 0.05 * s, z + Math.cos(ry) * 0.08 * s], rot: [0, ry, 0] }));
     for (const e of [-1, 1]) this.b.add('mortar', prep(new THREE.SphereGeometry(0.035 * s, 5, 4), { pos: [x + Math.sin(ry) * 0.11 * s + Math.cos(ry) * e * 0.05 * s, 0.14 * s, z + Math.cos(ry) * 0.11 * s - Math.sin(ry) * e * 0.05 * s] }));
