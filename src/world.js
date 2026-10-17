@@ -53,6 +53,38 @@ class Buckets {
 }
 
 // Walkable footprint of the cruciform crypt (axis-aligned rectangles).
+export const LAYOUT = {
+  // fitted to the reference clay pass by tools/fidelity/layoutsearch.py (measured start values)
+  walk: 7.6,
+  backZ: -7.8,
+  backH: 7,
+  recessHalf: 3.8,
+  bannerPierX: 4.375,
+  bannerX: 4.6,
+  curbW: 1.8,
+  curbH: 0.6,
+  upperEnd: 2,
+  upperWallX: 9.1,
+  upperWallH: 1.8,
+  plinthW: 1.7,
+  plinthH: 1.6,
+  shaftW: 1.05,
+  pierTop: 3.2,
+  pierUX: 9.2,
+  pierUZ: 0.5,
+  pierU2X: 8,
+  pierU2Z: -3.7,
+  lowerStart: 5.2,
+  stepN: 3,
+  stepH: 0.43,
+  stepW: 0.962,
+  pierLX: 9.4,
+  pierLZ: 6.9,
+  pierBX: 9,
+  pierBZ: 12,
+  outerX: 13.6,
+  outerH: 4.2,
+};
 const WALK = [
   { x0: -7.2, x1: 7.2, z0: -5.4, z1: 13.5 },    // walkway between the side ranges
   { x0: -12.6, x1: 12.6, z0: 1.4, z1: 3.0 },    // openings onto the sunken side bays
@@ -66,6 +98,10 @@ export class World {
     this.b = new Buckets();
     this.obstacles = [];
     this.landmarks = []; // named reference points, used by tools/fidelity/gridproject.mjs
+    // Room layout, in metres. Values come from measurements of the reference clay pass through the
+    // fitted camera and are refined by tools/fidelity/layoutsearch.py; ?layout={...} overrides them.
+    this.L = { ...LAYOUT };
+    try { const q = new URLSearchParams(location.search).get('layout'); if (q) Object.assign(this.L, JSON.parse(q)); } catch { /* bad override */ }
     this.candles = [];
     this.lights = [];
     this.anim = [];
@@ -435,40 +471,42 @@ export class World {
     for (let z = z0; z < z1; z += 0.8) this.obstacles.push({ x: sx * (xi + 1.3), z, r: 1.3 });
   }
   architecture() {
-    // back wall at z -8.1 with a recess (|x| < 3.8) behind the tabernacle
-    const BZ = -8.1;
-    this.wall(-15, BZ, -3.8, BZ, 7.0, { thick: 0.8, broken: 0.15 });
-    this.wall(3.8, BZ, 15, BZ, 7.0, { thick: 0.8, broken: 0.15 });
-    this.wall(-3.8, -9.0, 3.8, -9.0, 7.0, { thick: 0.7, broken: 0.1, gapsAt: [[1.2, 2.6, 2.6, 6.2], [5.0, 6.4, 2.6, 6.2], [3.1, 4.5, 3.4, 7.0]] });
-    this.window(-2.4, 4.4, -8.98, 1.15, 3.2); this.window(2.4, 4.4, -8.98, 1.15, 3.2); this.window(0, 5.2, -8.98, 1.15, 3.4);
+    const L = this.L, BZ = L.backZ;
+    // back wall with a recess behind the tabernacle
+    this.wall(-15, BZ, -L.recessHalf, BZ, L.backH, { thick: 0.8, broken: 0.15 });
+    this.wall(L.recessHalf, BZ, 15, BZ, L.backH, { thick: 0.8, broken: 0.15 });
+    this.wall(-L.recessHalf, BZ - 0.9, L.recessHalf, BZ - 0.9, L.backH, { thick: 0.7, broken: 0.1, gapsAt: [[1.2, 2.6, 2.6, 6.2], [5.0, 6.4, 2.6, 6.2], [3.1, 4.5, 3.4, 7.0]] });
+    this.window(-2.4, 4.4, BZ - 0.88, 1.15, 3.2); this.window(2.4, 4.4, BZ - 0.88, 1.15, 3.2); this.window(0, 5.2, BZ - 0.88, 1.15, 3.4);
     for (const sx of [-1, 1]) {
-      this.wall(sx * 3.8, BZ, sx * 3.8, -9.0, 7.0, { thick: 0.5, broken: 0.05 });
-      // banner pillar standing in front of the wall
-      this.pier(sx * 6.5, -7.6, { w: 1.0, height: 5.6 });
-      this.banner(sx * 4.6, 5.8, -7.65, sx > 0 ? 1 : 0, 1.0, 2.8);
-      this.hangingChain(sx * 5.4, -7.6, 8.5, 2.0); this.hangingChain(sx * 3.9, -7.6, 8.5, 3.2);
-      this.candleCluster(sx * 5.0, 0, -7.3, 5, 0.35, 0.4);
+      this.wall(sx * L.recessHalf, BZ, sx * L.recessHalf, BZ - 0.9, L.backH, { thick: 0.5, broken: 0.05 });
+      this.pier(sx * L.bannerPierX, BZ + 0.5, { w: 1.0, height: 5.6 });
+      this.banner(sx * L.bannerX, 5.8, BZ + 0.45, sx > 0 ? 1 : 0, 1.0, 2.8);
+      this.hangingChain(sx * (L.bannerX + 0.8), BZ + 0.5, 8.5, 2.0); this.hangingChain(sx * (L.bannerX - 0.7), BZ + 0.5, 8.5, 3.2);
+      this.candleCluster(sx * L.bannerX, 0, BZ + 0.8, 5, 0.35, 0.4);
     }
-    // upper flanking piers with a raised ledge behind them running back to the wall
-    this.measuredPier(-8.1, 0.5, { py: 1.12, top: 3.24 }); this.measuredPier(8.8, -0.3, { py: 1.14, top: 2.73 });
-    this.measuredPier(-8.4, -4.3, { py: 0.8, top: 2.6, pw: 1.4 }); this.measuredPier(8.5, -4.3, { py: 0.8, top: 2.3, pw: 1.4 });
     for (const sx of [-1, 1]) {
-      const r = this.r;
-      let z = -7.6;
-      while (z < 1.2) { const w = Math.min(P.range(r, 0.9, 1.4), 1.2 - z); this.slab(2.6, 0.5, w - 0.05, sx * 8.6, 0.25, z + w / 2, { tint: P.range(r, 0.8, 1.02), bevel: 0.05 }); z += w; }
-      this.wall(sx * 11.0, -7.6, sx * 11.0, 1.4, 1.8, { thick: 0.9, broken: 0.6 });
-      for (let zz = -7.4; zz < 1.0; zz += 0.8) this.obstacles.push({ x: sx * 8.6, z: zz, r: 1.4 });
-    }
-    // lower flanking piers on the stepped walls, and the near pair at the bottom of the frame
-    this.sideSteps(-1, 7.6, 3.4, 13.5); this.sideSteps(1, 7.5, 3.0, 13.5);
-    this.measuredPier(-9.6, 6.9, { py: 1.15, top: 1.95 + 1.15 }); this.measuredPier(9.6, 7.3, { py: 1.15, top: 3.0 });
-    this.measuredPier(-9.2, 12.3, { py: 1.15, top: 3.6 }); this.measuredPier(9.3, 11.6, { py: 1.15, top: 3.2 });
-    // sunken bays beyond the sides: low broken walls, broken masonry and heaps of bones
-    for (const sx of [-1, 1]) {
-      this.wall(sx * 13.6, BZ, sx * 13.6, 16, 3.2, { thick: 0.9, broken: 0.7, gapsAt: [[1.0, 2.6, 0, 3.2]] });
-      this.wall(sx * 12.0, 0.2, sx * 12.0, 2.6, 1.5, { thick: 0.7, broken: 0.6 });
-      this.rubble(sx * 11.6, 3.0, 1.8, 40); this.bones(sx * 10.9, 3.6, 1.2, 18, 5);
-      this.rubble(sx * 12.0, -4.5, 1.6, 26); this.rubble(sx * 11.5, 9.0, 1.8, 30);
+      const r = this.r, X = v => sx * v;
+      // upper section: curb along the walkway, broad pier, a low broken wall behind it
+      let z = BZ + 0.5;
+      while (z < L.upperEnd) { const w = Math.min(P.range(r, 0.9, 1.4), L.upperEnd - z); this.slab(L.curbW, L.curbH, w - 0.05, X(L.walk + L.curbW / 2), L.curbH / 2, z + w / 2, { tint: P.range(r, 0.8, 1.02), bevel: 0.05 }); z += w; }
+      this.wall(X(L.upperWallX), BZ + 0.5, X(L.upperWallX), L.upperEnd, L.upperWallH, { thick: 0.8, broken: 0.55 });
+      for (let zz = BZ + 0.6; zz < L.upperEnd; zz += 0.8) this.obstacles.push({ x: X(L.walk + 1.2), z: zz, r: 1.3 });
+      this.measuredPier(X(L.pierUX), L.pierUZ, { py: L.plinthH, top: L.pierTop, pw: L.plinthW, sw: L.shaftW });
+      this.measuredPier(X(L.pierU2X), L.pierU2Z, { py: L.plinthH * 0.75, top: L.pierTop * 0.8, pw: L.plinthW * 0.8, sw: L.shaftW });
+      // lower section: steps rising away from the walkway, piers on top
+      for (let k = 0; k < L.stepN; k++) {
+        const h = L.stepH * (k + 1), xa = L.walk + 0.15 + k * L.stepW;
+        let zz = L.lowerStart;
+        while (zz < 14 - 0.1) { const w = Math.min(P.range(r, 0.9, 1.5), 14 - zz); this.slab(L.stepW - 0.04, h, w - 0.05, X(xa + L.stepW / 2), h / 2, zz + w / 2, { tint: P.range(r, 0.8, 1.05), bevel: 0.05 }); zz += w; }
+      }
+      for (let zz = L.lowerStart; zz < 14; zz += 0.8) this.obstacles.push({ x: X(L.walk + 1.4), z: zz, r: 1.3 });
+      const topY = L.stepH * L.stepN;
+      this.measuredPier(X(L.pierLX), L.pierLZ, { py: topY + L.plinthH * 0.5, top: topY + L.pierTop * 0.6, pw: L.plinthW, sw: L.shaftW });
+      this.measuredPier(X(L.pierBX), L.pierBZ, { py: topY + L.plinthH * 0.5, top: topY + L.pierTop * 0.7, pw: L.plinthW, sw: L.shaftW });
+      // sunken bays beyond the sides
+      this.wall(X(L.outerX), BZ, X(L.outerX), 16, L.outerH, { thick: 0.9, broken: 0.7, gapsAt: [[1.0, 2.6, 0, 3.2]] });
+      this.rubble(X(L.walk + 4.3), 2.6, 1.8, 40); this.bones(X(L.walk + 3.6), 3.4, 1.2, 18, 5);
+      this.rubble(X(L.walk + 4.7), -4.5, 1.6, 26); this.rubble(X(L.walk + 4.2), 9.0, 1.8, 30);
     }
   }
 
