@@ -14,7 +14,9 @@ const MAX_HP = 100, MAX_ES = 75, WARDEN_HP = 400, THRALL_HP = 60, ARCHER_HP = 40
 // Characters are authored at human scale; the crypt reads at a slightly heroic scale.
 const ACTOR_SCALE = 1.4;
 // Reach and body radii were balanced at scale 1.3; R keeps them proportional to the models.
-const R = ACTOR_SCALE / 1.3;
+// Reach and body radii, fixed at the values of the build whose difficulty was approved (#1);
+// independent of the model scale so visual tweaks cannot change balance.
+const R = 1.6 / 1.3;
 const WARDEN_SCALE = 0.95;
 
 // ---------------------------------------------------------------- materials
