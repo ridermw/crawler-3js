@@ -74,6 +74,8 @@ python3 tools/fidelity/diagnose.py --screen crypt  # per-cell edge, HOG, SSIM an
 
 `artifacts/calibration/` holds **positive controls**: independent re-renders of each mock's prompt with the same model. They score 48–64 on the v2 scene-structure metric, while this build scores 70–75, which shows the bar of 75 rewards pixel registration with one image more than design fidelity.
 
+**Environment blockout.** The room is built to the gameplay mock only. The camera is fitted to it (`tools/fidelity/refcam.py`, 0.016 m RMS), and positions are read off the reference clay pass with `measure.py`. `layoutsearch.py` fits the room's `LAYOUT` parameters (`src/world.js`; override with `?layout={...}`) by rendering candidates in clay (`?pass=clay&ui=0&actors=0`) and scoring them with `claymatch.py`. `depthdump.mjs`, `depthdiff.py` and `plan.py` compare per-pixel depth and a top-down height plan against the calibrated reference depth pass. The current side-by-side is `artifacts/validation/clay/crypt-clay-vs-reference.jpg`.
+
 `artifacts/image-run/` holds geometry references made from each mock with `mockui edit`, following the image-run workflow: a tone-matched 4K master, a clean plate with UI and characters removed, a white shadowless clay pass and a depth pass. Prompts, check results and the call ledger are committed; the large PNGs are not. The runtime `?pass=clay` capture is compared against these passes to find layout drift.
 
 ## Run locally
