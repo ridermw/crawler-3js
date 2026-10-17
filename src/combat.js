@@ -15,7 +15,7 @@ const MAX_HP = 100, MAX_ES = 75, WARDEN_HP = 400, THRALL_HP = 60, ARCHER_HP = 40
 const ACTOR_SCALE = 1.4;
 // Reach and body radii were balanced at scale 1.3; R keeps them proportional to the models.
 const R = ACTOR_SCALE / 1.3;
-const WARDEN_SCALE = 0.8;
+const WARDEN_SCALE = 0.95;
 
 // ---------------------------------------------------------------- materials
 let M = null;
@@ -30,9 +30,10 @@ function mats() {
     cloth: std({ ...cape, color: '#6a6a72', side: THREE.DoubleSide }),
     brass: std({ color: '#a8823e', metalness: 0.45, roughness: 0.4 }),
     blade: std({ color: '#dfe3e8', metalness: 0.5, roughness: 0.25, emissive: '#2a2a2a' }),
-    bone: std({ ...bone, color: '#d6cbb0', roughness: 0.7 }),
-    boneDark: std({ ...bone, color: '#8c8270', roughness: 0.8 }),
-    robe: std({ ...robe, color: '#c6b6ae', side: THREE.DoubleSide }),
+    bone: std({ ...bone, color: '#a89f88', roughness: 0.75 }),
+    boneDark: std({ ...bone, color: '#6e6656', roughness: 0.8 }),
+    rag: std({ ...robe, color: '#4a4440', side: THREE.DoubleSide, roughness: 0.95 }),
+    robe: std({ ...robe, color: '#5a5250', side: THREE.DoubleSide }),
     crimson: std({ color: '#7a1a1e', roughness: 0.7 }),
     rust: std({ color: '#5a4030', metalness: 0.5, roughness: 0.7 }),
     eye: new THREE.MeshBasicMaterial({ color: '#ff4a30', toneMapped: false }),
@@ -133,6 +134,14 @@ function buildThrall(seed = 1, archer = false) {
     part(cyl(0.025, 0.02, 0.3, 5), m.bone, 0, -0.15, 0, el);
     J[s < 0 ? 'handR' : 'handL'] = joint(el, 0, -0.32, 0);
   }
+  // rusted armour scraps and a tattered tabard, as worn by the reference thralls
+  part(box(0.34, 0.26, 0.2), m.rust, 0, 0.36, 0.02, J.torso, { sx: 1, rx: 0.05 });
+  for (const sd of [-1, 1]) part(sph(0.09, 6, 4), m.rust, sd * 0.2, 0.52, 0, J.torso, { sy: 0.6 });
+  const tab = new THREE.PlaneGeometry(0.3, 0.55, 1, 3);
+  { const tp = tab.attributes.position; for (let i = 0; i < tp.count; i++) if (tp.getY(i) < -0.2) tp.setY(i, tp.getY(i) + r() * 0.15); }
+  part(tab, m.rag, 0, 0.08, 0.13, J.torso, { rx: 0.08 });
+  part(tab.clone(), m.rag, 0, 0.08, -0.12, J.torso, { rx: -0.08 });
+  part(box(0.32, 0.06, 0.2), m.leather, 0, 0.02, 0, J.hips);
   if (archer) {
     // bone bow held in the left hand, a hood and a quiver
     const bow = joint(J.handL, 0, 0, 0.04);
@@ -151,47 +160,61 @@ function buildThrall(seed = 1, archer = false) {
 }
 
 function buildWarden() {
-  const m = mats(), root = new THREE.Group(), J = {};
-  J.hips = joint(root, 0, 0.0, 0);
-  const robe = new THREE.CylinderGeometry(0.26, 0.48, 1.55, 10, 4, true);
-  { // tattered hem: jitter the lowest ring of vertices
-    const p = robe.attributes.position, r = P.rng(77);
-    for (let i = 0; i < p.count; i++) if (p.getY(i) < -0.7) p.setY(i, p.getY(i) + r() * 0.22);
+  // a gaunt armoured lich: legs in greaves under split ragged skirts, a blackened breastplate,
+  // spiked pauldrons, a skull under a horned crown, and a crimson staff
+  const m = mats(), root = new THREE.Group(), J = {}, r = P.rng(77);
+  J.hips = joint(root, 0, 1.05, 0);
+  part(box(0.4, 0.18, 0.26), m.armorDark, 0, 0, 0, J.hips);
+  for (const sd of [-1, 1]) {
+    const hip = J[sd < 0 ? 'hipR' : 'hipL'] = joint(J.hips, sd * 0.12, -0.06, 0);
+    part(box(0.15, 0.5, 0.17), m.armorDark, 0, -0.25, 0, hip);
+    const knee = J[sd < 0 ? 'kneeR' : 'kneeL'] = joint(hip, 0, -0.5, 0);
+    part(sph(0.08, 6, 4), m.rust, 0, 0, 0.05, knee);
+    part(box(0.13, 0.46, 0.15), m.armorDark, 0, -0.24, 0, knee);
+    part(box(0.15, 0.08, 0.26), m.armorDark, 0, -0.48, 0.05, knee);
   }
-  part(robe, m.robe, 0, 0.78, 0, J.hips);
-  part(cyl(0.28, 0.3, 0.1, 10), m.crimson, 0, 1.5, 0, J.hips);
-  J.torso = joint(J.hips, 0, 1.5, 0);
-  part(cyl(0.3, 0.27, 0.6, 8), m.robe, 0, 0.28, 0, J.torso, { sz: 0.7 });
-  part(box(0.16, 0.7, 0.02), m.crimson, 0, 0.2, 0.25, J.torso);
-  for (const s of [-1, 1]) {
-    part(sph(0.2, 7, 5), m.boneDark, s * 0.38, 0.6, 0, J.torso, { sy: 0.6 });
-    for (let k = 0; k < 3; k++) part(new THREE.ConeGeometry(0.04, 0.26, 5), m.bone, s * (0.36 + k * 0.06), 0.78, -0.04 + k * 0.05, J.torso, { rz: -s * 0.5 });
+  // ragged skirt panels hanging from the belt
+  for (let k = 0; k < 6; k++) {
+    const a = (k / 6) * Math.PI * 2, g = new THREE.PlaneGeometry(0.28, 0.9, 1, 4);
+    const gp = g.attributes.position; for (let i = 0; i < gp.count; i++) if (gp.getY(i) < -0.3) gp.setY(i, gp.getY(i) + r() * 0.3);
+    part(g, m.robe, Math.sin(a) * 0.22, -0.45, Math.cos(a) * 0.16, J.hips, { ry: a, rx: 0.15 });
   }
-  J.head = joint(J.torso, 0, 0.78, 0);
-  part(sph(0.17, 8, 6), m.bone, 0, 0.08, 0.02, J.head, { sz: 1.1 });
-  part(box(0.18, 0.08, 0.12), m.bone, 0, -0.07, 0.08, J.head);
-  for (const s of [-1, 1]) part(sph(0.035, 5, 4), m.eye, s * 0.06, 0.1, 0.16, J.head);
-  part(cyl(0.2, 0.19, 0.08, 8), m.brass, 0, 0.21, 0, J.head);
-  for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2; part(new THREE.ConeGeometry(0.03, 0.18, 4), m.brass, Math.sin(a) * 0.18, 0.32, Math.cos(a) * 0.18, J.head); }
-  for (const s of [-1, 1]) {
-    const horn = joint(J.head, s * 0.16, 0.2, -0.02);
-    part(new THREE.ConeGeometry(0.06, 0.42, 6), m.boneDark, s * 0.1, 0.16, 0, horn, { rz: -s * 0.75 });
-    part(new THREE.ConeGeometry(0.035, 0.24, 5), m.boneDark, s * 0.25, 0.4, 0, horn, { rz: -s * 0.15 });
+  J.torso = joint(J.hips, 0, 0.1, 0);
+  part(cyl(0.27, 0.2, 0.55, 8), m.armorDark, 0, 0.28, 0, J.torso, { sz: 0.75 });
+  part(box(0.12, 0.42, 0.04), m.crimson, 0, 0.28, 0.2, J.torso);
+  for (let k = 0; k < 3; k++) part(box(0.34 - k * 0.04, 0.03, 0.04), m.boneDark, 0, 0.18 + k * 0.1, 0.19, J.torso);
+  for (const sd of [-1, 1]) {
+    part(sph(0.17, 7, 5), m.armorDark, sd * 0.32, 0.52, 0, J.torso, { sy: 0.65 });
+    for (let k = 0; k < 3; k++) part(new THREE.ConeGeometry(0.035, 0.24, 5), m.boneDark, sd * (0.3 + k * 0.06), 0.68, -0.05 + k * 0.05, J.torso, { rz: -sd * 0.5 });
   }
-  part(new THREE.PlaneGeometry(0.8, 1.3, 1, 3), m.robe, 0, -0.1, -0.28, J.torso, { rx: 0.08 });
-  for (const s of [-1, 1]) {
-    const sh = J[s < 0 ? 'shR' : 'shL'] = joint(J.torso, s * 0.36, 0.5, 0);
-    part(cyl(0.11, 0.16, 0.6, 6), m.robe, 0, -0.28, 0, sh);
-    const el = J[s < 0 ? 'elR' : 'elL'] = joint(sh, 0, -0.55, 0);
-    part(cyl(0.03, 0.03, 0.3, 5), m.bone, 0, -0.15, 0, el);
-    J[s < 0 ? 'handR' : 'handL'] = joint(el, 0, -0.32, 0);
+  // cloak
+  const cl = new THREE.PlaneGeometry(0.75, 1.5, 2, 5); { const cp = cl.attributes.position; for (let i = 0; i < cp.count; i++) if (cp.getY(i) < -0.4) cp.setY(i, cp.getY(i) + r() * 0.35); }
+  part(cl, m.robe, 0, -0.18, -0.22, J.torso, { rx: 0.1 });
+  J.head = joint(J.torso, 0, 0.66, 0);
+  part(sph(0.14, 8, 6), m.bone, 0, 0.06, 0.02, J.head, { sz: 1.1 });
+  part(box(0.15, 0.07, 0.11), m.bone, 0, -0.07, 0.07, J.head);
+  for (const sd of [-1, 1]) part(sph(0.032, 5, 4), m.eye, sd * 0.05, 0.08, 0.135, J.head);
+  part(cyl(0.17, 0.16, 0.07, 8), m.brass, 0, 0.18, 0, J.head);
+  for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2; part(new THREE.ConeGeometry(0.025, 0.16, 4), m.brass, Math.sin(a) * 0.15, 0.28, Math.cos(a) * 0.15, J.head); }
+  for (const sd of [-1, 1]) {
+    const horn = joint(J.head, sd * 0.13, 0.17, -0.02);
+    part(new THREE.ConeGeometry(0.05, 0.36, 6), m.boneDark, sd * 0.09, 0.13, 0, horn, { rz: -sd * 0.75 });
+    part(new THREE.ConeGeometry(0.03, 0.2, 5), m.boneDark, sd * 0.21, 0.34, 0, horn, { rz: -sd * 0.15 });
+  }
+  for (const sd of [-1, 1]) {
+    const sh = J[sd < 0 ? 'shR' : 'shL'] = joint(J.torso, sd * 0.32, 0.46, 0);
+    part(box(0.12, 0.34, 0.13), m.armorDark, 0, -0.17, 0, sh);
+    const el = J[sd < 0 ? 'elR' : 'elL'] = joint(sh, 0, -0.36, 0);
+    part(box(0.11, 0.3, 0.12), m.armorDark, 0, -0.15, 0, el);
+    part(box(0.13, 0.1, 0.14), m.rust, 0, -0.3, 0, el);
+    J[sd < 0 ? 'handR' : 'handL'] = joint(el, 0, -0.34, 0);
   }
   // crimson staff
   const st = J.staff = joint(J.handR, 0, 0, 0);
-  part(cyl(0.035, 0.04, 2.3, 6), m.leather, 0, 0.35, 0, st);
-  part(new THREE.TorusGeometry(0.13, 0.025, 5, 10), m.brass, 0, 1.55, 0, st);
-  for (let k = 0; k < 3; k++) part(new THREE.ConeGeometry(0.025, 0.24, 4), m.boneDark, Math.cos(k * 2.1) * 0.12, 1.66, Math.sin(k * 2.1) * 0.12, st);
-  J.gem = part(new THREE.OctahedronGeometry(0.11, 0), m.gem, 0, 1.55, 0, st);
+  part(cyl(0.03, 0.035, 2.2, 6), m.leather, 0, 0.35, 0, st);
+  part(new THREE.TorusGeometry(0.12, 0.022, 5, 10), m.brass, 0, 1.5, 0, st);
+  for (let k = 0; k < 3; k++) part(new THREE.ConeGeometry(0.022, 0.22, 4), m.boneDark, Math.cos(k * 2.1) * 0.11, 1.6, Math.sin(k * 2.1) * 0.11, st);
+  J.gem = part(new THREE.OctahedronGeometry(0.1, 0), m.gem, 0, 1.5, 0, st);
   J.gem.castShadow = false;
   J.root = root;
   return J;
@@ -259,10 +282,10 @@ export class Combat {
     this.wardRing.rotation.x = -Math.PI / 2; this.wardRing.visible = false;
     this.wardLight = new THREE.PointLight('#e0a050', 0, 6, 1.5); this.group.add(this.wardLight);
     this.rune = add(new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.0), new THREE.MeshBasicMaterial({ map: this.tex.rune, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, color: '#ff5040' })));
-    this.rune.rotation.x = -Math.PI / 2; this.rune.scale.setScalar(ACTOR_SCALE);
+    this.rune.rotation.x = -Math.PI / 2; this.rune.scale.setScalar(ACTOR_SCALE * 0.85);
     this.staffLight = new THREE.PointLight('#ff3020', 4, 5, 1.6); this.group.add(this.staffLight);
     this.staffGlow = add(new THREE.Sprite(new THREE.SpriteMaterial({ map: this.tex.disc, color: '#ff4030', blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, opacity: 0.9 })));
-    this.staffGlow.scale.setScalar(0.7 * ACTOR_SCALE);
+    this.staffGlow.scale.setScalar(0.4 * ACTOR_SCALE);
     this.knightLight = new THREE.PointLight('#c8d0d8', 14, 8, 1.2); this.group.add(this.knightLight);
   }
 
@@ -481,7 +504,7 @@ export class Combat {
       this.staffGlow.position.copy(gp); this.staffLight.position.copy(gp);
       // telegraph: the staff swells and brightens while a bolt or nova is charging
       const charge = this.active && dt > 0 && !w.dead && w.anim === 'cast' && !w.fired ? Math.min(1, w.animT / 0.6) : 0;
-      this.staffGlow.visible = !w.dead; this.staffGlow.scale.setScalar((0.7 + charge * 0.9) * ACTOR_SCALE);
+      this.staffGlow.visible = !w.dead; this.staffGlow.scale.setScalar((0.4 + charge * 0.9) * ACTOR_SCALE);
       this.staffLight.intensity = w.dead ? 0 : 6 + Math.sin(t * 6) * 1.5 + charge * 14;
     }
     this.knightLight.position.set(k.pos.x - 1.5, 3.2 * ACTOR_SCALE, k.pos.z + 2.0);
@@ -712,7 +735,9 @@ export class Combat {
   poseWarden(e, dt, time) {
     const J = e.J, t = e.animT;
     J.root.rotation.set(0, e.facing, 0);
-    J.hips.position.y = Math.sin(time * 1.6) * 0.04; J.torso.rotation.set(0.05, 0, 0);
+    this.legs(J, e.walk, e.walkAmt, 0.4);
+    if (!e.walkAmt) { J.hipL.rotation.x = -0.25; J.kneeL.rotation.x = 0.2; J.hipR.rotation.x = 0.15; }
+    J.hips.position.y = 1.05 + Math.sin(time * 1.6) * 0.02; J.torso.rotation.set(0.05, 0, 0);
     J.shR.rotation.set(-0.6, 0, -0.35); J.elR.rotation.set(-0.6, 0, 0); J.handR.rotation.set(0.7, 0, 0.2);
     J.shL.rotation.set(-0.4, 0, 0.4); J.elL.rotation.set(-0.9, 0, 0);
     J.head.rotation.set(0, 0, 0);
@@ -721,7 +746,7 @@ export class Combat {
       J.shR.rotation.set(-0.6 - 1.9 * p, 0, -0.35 - 0.2 * p); J.elR.rotation.set(-0.6 + 0.4 * p, 0, 0); J.handR.rotation.set(0.7 + 0.4 * p, 0, 0.2);
       J.shL.rotation.set(-0.4 - 0.6 * p, 0, 0.4 + 0.4 * p); J.head.rotation.x = -0.2 * p; J.torso.rotation.x = -0.12 * p;
     } else if (e.anim === 'die') {
-      e.deadT += dt; const p = ease(t / 1.2); J.root.rotation.x = -0.4 * p; J.root.position.y = -1.3 * p; J.root.scale.setScalar(WARDEN_SCALE * ACTOR_SCALE * (1 - 0.3 * p));
+      e.deadT += dt; const p = ease(t / 1.2); J.root.rotation.x = -1.3 * p; J.root.position.y = 0.2 * p; J.root.scale.setScalar(WARDEN_SCALE * ACTOR_SCALE * (1 - 0.3 * p));
     }
     if (e.hitT > 0) J.torso.rotation.x -= 0.1;
     J.root.position.y = e.dead ? J.root.position.y : 0;
