@@ -55,6 +55,7 @@ class Buckets {
 
 // Walkable footprint of the cruciform crypt (axis-aligned rectangles).
 export let TOP_LIFT = 0.25;
+export let FLOOR_LIFT = 0;
 export const LAYOUT = {
   // fitted to the reference clay pass by tools/fidelity/layoutsearch.py (measured start values)
   walk: 7.7,
@@ -139,7 +140,7 @@ export class World {
   }
 
   materials() {
-    const floor = P.stoneSurface(11, { base: [64, 64, 66], contrast: 1.3, normal: 7, warm: 0.2 });
+    const floor = P.stoneSurface(11, { base: [64, 64, 66], contrast: 1.6, cracks: 40, normal: 9, warm: 0.2 });
     const wall = P.stoneSurface(23, { base: [92, 94, 98], contrast: 1.2, cracks: 34, warm: 0.15, normal: 7 });
     const relief = P.gothicRelief(5, { base: [104, 104, 106] });
     const reliefAltar = P.gothicRelief(9, { base: [118, 112, 104], emblem: true });
@@ -161,11 +162,12 @@ export class World {
     };
     // stone tops catch the cold sky light (as in the reference): boost up-facing faces of the
     // stone material in its fragment shader, using the world-space normal
-    this.mats.stone.onBeforeCompile = sh => {
-      sh.uniforms.uTopLift = { value: TOP_LIFT };
+    const lift = (mat, k) => mat.onBeforeCompile = sh => {
+      sh.uniforms.uTopLift = { value: k };
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vUpN;').replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nvUpN = normalize(mat3(modelMatrix) * objectNormal).y;');
       sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vUpN; uniform float uTopLift;').replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * vec3(0.55, 0.62, 0.7) * uTopLift * smoothstep(0.55, 0.95, vUpN);');
     };
+    lift(this.mats.stone, TOP_LIFT); lift(this.mats.floor, FLOOR_LIFT);
     this.tex = { banner0: P.bannerTex(61, 0), banner1: P.bannerTex(62, 1), lancet: P.lancetTex(71), fog: P.fogTex(81), disc: P.softDisc(128) };
   }
 
@@ -461,7 +463,7 @@ export class World {
     pieces.forEach((poly, k) => {
       if (poly.length < 3) return;
       const shape = new THREE.Shape(poly.map(([x, z]) => new THREE.Vector2(x, -z)));
-      const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.12, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.045, bevelSegments: 2, curveSegments: 1 });
+      const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.12, bevelEnabled: true, bevelThickness: 0.07, bevelSize: 0.07, bevelSegments: 3, curveSegments: 1 });
       const dy = k ? P.range(r, -0.03, 0.01) : 0;
       this.b.add('floor', prep(geo, { pos: [cx, top - 0.17 + dy, cz], rot: [-Math.PI / 2 + (r() - 0.5) * 0.015, 0, (r() - 0.5) * 0.015], uv: 2.0, tint: tint * P.range(r, 0.93, 1.05) }));
     });
