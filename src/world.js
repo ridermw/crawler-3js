@@ -715,6 +715,9 @@ export class World {
     Object.assign(moon.shadow.camera, { left: -17, right: 17, top: 17, bottom: -17, near: 1, far: 60 });
     moon.shadow.bias = -0.0005; moon.shadow.normalBias = 0.03;
     this.scene.add(moon, moon.target); this.moon = moon;
+    // cool fill from the viewer's side so walls facing the camera read, as in the reference
+    const fill = new THREE.DirectionalLight('#8c9cab', 0.9); fill.position.set(2, 14, 26); fill.target.position.set(0, 2, -8);
+    this.scene.add(fill, fill.target); this.fill = fill;
     this.hemi = new THREE.HemisphereLight('#727c86', '#1e1d1c', 1.5); this.scene.add(this.hemi);
     const warm = (x, y, z, i, d = 8, col = '#D69A45') => { const l = new THREE.PointLight(col, i, d, 1.5); l.position.set(x, y, z); l.userData.base = i; this.scene.add(l); this.lights.push(l); return l; };
     warm(0, 3.0, -5.4, 13, 9); warm(-2.4, 1.6, -6.2, 9, 6); warm(2.4, 1.6, -6.2, 9, 6);

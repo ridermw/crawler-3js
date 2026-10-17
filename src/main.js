@@ -42,7 +42,7 @@ scene.fog = new THREE.FogExp2('#0e1318', 0.012);
 // Perspective camera framed by the vertical extent (`height`) visible at the target, so a pose
 // reads the same at any field of view; a narrow fov approaches the orthographic look.
 const camera = new THREE.PerspectiveCamera(20, 16 / 9, 0.5, 400);
-const FOG_DENSITY_X_DIST = 0.72;
+let FOG_DENSITY_X_DIST = 0.72;
 
 const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
 const composer = new EffectComposer(renderer, rt);
@@ -97,7 +97,7 @@ composer.addPass(new OutputPass());
 const POSES = {
   title: { target: new THREE.Vector3(0, -1.25, 0.9), yaw: 9, pitch: 24.5, height: 14, fov: 24, moon: 0.35, hemi: 0.8, candles: 0.8, shade: 0, sat: 0.85, gain: 0.92, lo: [0.86, 0.99, 1.22], hi: [1.04, 1, 0.95] },
   settings: { target: new THREE.Vector3(-3.6, 1.5, -1.75), yaw: 6, pitch: 19.25, height: 13, fov: 2, moon: 2.1, hemi: 1.3, shade: 0.2, sat: 0.5, gain: 0.76, lo: [0.96, 0.99, 1.0] },
-  crypt: { target: new THREE.Vector3(0, 0, 3.44), yaw: 0, pitch: 37.3, height: 16.69, fov: 36.9, moon: 2.15, hemi: 1.3, pool: 6, candles: 0.4, shade: 0.05, sat: 0.6, gain: 1, lo: [0.96, 0.99, 1.04], hi: [1, 1, 0.95] },
+  crypt: { target: new THREE.Vector3(0, 0, 3.44), yaw: 0, pitch: 37.3, height: 16.69, fov: 36.9, fogK: 0.3, moon: 1.1, hemi: 1.3, pool: 7, fill: 1.2, candles: 0.6, shade: 0.05, sat: 0.6, gain: 1, lo: [0.96, 0.99, 1.04], hi: [0.98, 1, 0.95] },
 };
 const cam = { target: POSES[START].target.clone(), yaw: POSES[START].yaw, pitch: POSES[START].pitch, height: POSES[START].height, fov: POSES[START].fov ?? 4 };
 let shake = 0;
@@ -180,7 +180,7 @@ function go(next) {
     combat.setVisible(false); combat.active = false; ui.loot(false); ui.banner(null);
   }
   grade.uniforms.uDim.value = next === 'settings' ? 0.92 : 1;
-  const pose = POSES[next] || POSES.title; world.setMood(pose.moon, pose.hemi, pose.pool);
+  const pose = POSES[next] || POSES.title; world.setMood(pose.moon, pose.hemi, pose.pool); world.fill.intensity = pose.fill ?? 0; FOG_DENSITY_X_DIST = pose.fogK ?? 0.72;
   grade.uniforms.uShade.value = pose.shade || 0;
   grade.uniforms.uSat.value = pose.sat ?? 0.9; grade.uniforms.uGain.value = pose.gain ?? 1;
   grade.uniforms.uLo.value.set(...(pose.lo || [0.96, 0.99, 1.04])); grade.uniforms.uHi.value.set(...(pose.hi || [1.04, 1.0, 0.95]));
@@ -216,7 +216,7 @@ function applyClay() {
   world.hemi.color.set('#ffffff'); world.hemi.groundColor.set('#5a5a5a'); world.hemi.intensity = 1.6;
   const key = new THREE.DirectionalLight('#ffffff', 1.4); key.position.set(-6, 14, 10); scene.add(key);
   scene.fog = null; scene.background = new THREE.Color('#dcdcdc');
-  bloom.enabled = false; grade.enabled = false; gtao.enabled = false; renderer.toneMapping = THREE.NoToneMapping;
+  world.fill.visible = false; bloom.enabled = false; grade.enabled = false; gtao.enabled = false; renderer.toneMapping = THREE.NoToneMapping;
   renderer.shadowMap.enabled = false;
 }
 
@@ -348,7 +348,7 @@ window.__crawlerDebug = {
   grade: g => { const u = grade.uniforms; if (g.lo) u.uLo.value.set(...g.lo); if (g.hi) u.uHi.value.set(...g.hi); if (g.ao !== undefined) gtao.blendIntensity = g.ao;
     if (g.aoRadius !== undefined) gtao.updateGtaoMaterial({ radius: g.aoRadius });
     for (const k of ['sat', 'gain', 'shade', 'dim', 'vig']) if (g[k] !== undefined) u['u' + k[0].toUpperCase() + k.slice(1)].value = g[k]; },
-  lights: l => { if (l.moon !== undefined) world.moon.intensity = l.moon; if (l.pool !== undefined) world.pool.intensity = l.pool; if (l.hemi !== undefined) world.hemi.intensity = l.hemi; if (l.candles !== undefined) world.setCandleScale(l.candles); if (l.exposure !== undefined) renderer.toneMappingExposure = l.exposure; if (l.moonColor) world.moon.color.set(l.moonColor); if (l.hemiColor) world.hemi.color.set(l.hemiColor); },
+  lights: l => { if (l.moon !== undefined) world.moon.intensity = l.moon; if (l.fill !== undefined) world.fill.intensity = l.fill; if (l.pool !== undefined) world.pool.intensity = l.pool; if (l.hemi !== undefined) world.hemi.intensity = l.hemi; if (l.candles !== undefined) world.setCandleScale(l.candles); if (l.exposure !== undefined) renderer.toneMappingExposure = l.exposure; if (l.moonColor) world.moon.color.set(l.moonColor); if (l.hemiColor) world.hemi.color.set(l.hemiColor); },
   state: () => ({ cam: { target: cam.target.toArray(), yaw: cam.yaw, pitch: cam.pitch, height: cam.height, fov: cam.fov } }),
 };
 Object.defineProperties(telemetry, {

@@ -43,9 +43,9 @@ SPACE = {
     "loR": ("grade", "lo", 0, 0.04, 0.7, 1.3), "loB": ("grade", "lo", 2, 0.04, 0.7, 1.3),
     "hiR": ("grade", "hi", 0, 0.04, 0.7, 1.3), "hiB": ("grade", "hi", 2, 0.04, 0.7, 1.3),
     "shade": ("grade", "shade", None, 0.1, 0, 1),
-    "moon": ("lights", "moon", None, 0.3, 0, 5), "hemi": ("lights", "hemi", None, 0.25, 0, 4), "candles": ("lights", "candles", None, 0.2, 0.1, 3), "pool": ("lights", "pool", None, 1.0, 0, 20),
+    "moon": ("lights", "moon", None, 0.3, 0, 5), "hemi": ("lights", "hemi", None, 0.25, 0, 4), "candles": ("lights", "candles", None, 0.2, 0.1, 3), "pool": ("lights", "pool", None, 1.0, 0, 20), "fill": ("lights", "fill", None, 0.3, 0, 4),
 }
-GROUPS = {"pose": ["fov", "tx", "ty", "tz", "yaw", "pitch", "height"], "grade": ["gain", "sat", "loR", "loB", "hiR", "hiB", "shade"], "lights": ["moon", "hemi", "candles", "pool"]}
+GROUPS = {"pose": ["fov", "tx", "ty", "tz", "yaw", "pitch", "height"], "grade": ["gain", "sat", "loR", "loB", "hiR", "hiB", "shade"], "lights": ["moon", "hemi", "candles", "pool", "fill"]}
 
 
 def clay_features(g: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
